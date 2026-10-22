@@ -1,0 +1,82 @@
+# Throwaway smoke stack for `bun run smoke` (scripts/smoke.ts), which passes a unique project name
+# (news-reader-test-<random>), the image tags and random secrets through the environment, then always runs `down -v`.
+# Not the production compose (that lives in the homelab repo), but the same shape: mongo only on an internal network,
+# app containers as uid 1000 with read-only root filesystems. Host ports are random and bound to 127.0.0.1 only.
+services:
+  mongo:
+    image: mongo:9.0.4
+    command: ["mongod", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${SMOKE_MONGO_ROOT_PASSWORD:?set by scripts/smoke.ts}
+      MONGO_APP_USER: news_app
+      MONGO_APP_PASSWORD: ${SMOKE_MONGO_APP_PASSWORD:?set by scripts/smoke.ts}
+      MONGO_APP_DB: news
+    volumes:
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro
+    tmpfs:
+      # A cap, not an allocation: mongod wants 500 MB free on its dbpath.
+      - /data/db:rw,size=1g
+      - /data/configdb:rw,size=16m
+    networks: [internal]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand('ping').ok ? 0 : 1)"]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+      start_period: 10s
+    labels:
+      news-reader-test: "1"
+
+  api:
+    image: ${SMOKE_API_IMAGE:?set by scripts/smoke.ts}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_URL: mongodb://news_app:${SMOKE_MONGO_APP_PASSWORD}@mongo:27017/news
+      INGEST_TOKEN: ${SMOKE_INGEST_TOKEN:?set by scripts/smoke.ts}
+      PUBLIC_ORIGIN: https://news.lab.x-muramasa.dev
+      # No network in tests: the KEV download fails fast (logged, never fatal).
+      KEV_URL: http://127.0.0.1:9/known_exploited_vulnerabilities.json
+    user: "1000:1000"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,size=16m
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    networks: [internal, edge]
+    ports:
+      - "127.0.0.1::8787"
+      - "127.0.0.1::8080"
+    healthcheck:
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+    labels:
+      news-reader-test: "1"
+
+  ui:
+    image: ${SMOKE_UI_IMAGE:?set by scripts/smoke.ts}
+    user: "1000:1000"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,size=8m
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    networks: [edge]
+    ports:
+      - "127.0.0.1::3000"
+    healthcheck:
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 2s
+    labels:
+      news-reader-test: "1"
+
+networks:
+  internal:
+    internal: true
+  edge: {}

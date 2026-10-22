@@ -1,0 +1,360 @@
+@import "tailwindcss";
+@import "@fontsource-variable/newsreader";
+@import "@fontsource-variable/newsreader/wght-italic.css";
+@import "@fontsource-variable/inter";
+
+/* Themes are data-theme on <html> (set before first paint by /theme-init.js). Every text colour below keeps 4.5:1
+   against --bg, --card and --muted in its theme; test/dom/contrast.test.ts checks it. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #fbfaf7;
+  --fg: #1c1917;
+  --card: #ffffff;
+  --muted: #f1eee8;
+  --muted-fg: #57534e;
+  --border: #ddd7cc;
+  --border-strong: #8a8174;
+  --ring: #1d4ed8;
+  --chile: #b91c1c;
+  --chile-blue: #1d4ed8;
+  --cyber: #92400e;
+  --cyber-strip: #1c1917;
+  --cyber-glow: #f59e0b;
+  --ai: #6d28d9;
+  --on-accent: #ffffff;
+  --ok: #166534;
+  --bad: #b91c1c;
+  --warn-bg: #fef3c7;
+  --warn-fg: #78350f;
+  --danger-bg: #fee2e2;
+  --danger-fg: #7f1d1d;
+  --info-bg: #ede9fe;
+  --info-fg: #4c1d95;
+  --g-right: #1d4ed8;
+  --g-center: #7e22ce;
+  --g-left: #b91c1c;
+  --g-independent: #047857;
+  --g-foreign: #0e7490;
+  --g-gov_vendor: #b45309;
+  --g-press: #1d4ed8;
+  --g-research: #7e22ce;
+  --g-lab: #be185d;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121212;
+  --fg: #ece9e2;
+  --card: #1b1a18;
+  --muted: #262421;
+  --muted-fg: #aaa49c;
+  --border: #3a3733;
+  --border-strong: #8f887e;
+  --ring: #93c5fd;
+  --chile: #f87171;
+  --chile-blue: #60a5fa;
+  --cyber: #fbbf24;
+  --cyber-strip: #000000;
+  --cyber-glow: #fbbf24;
+  --ai: #a78bfa;
+  --on-accent: #121212;
+  --ok: #4ade80;
+  --bad: #f87171;
+  --warn-bg: #3a2a0a;
+  --warn-fg: #fde68a;
+  --danger-bg: #3b1212;
+  --danger-fg: #fecaca;
+  --info-bg: #2a1f45;
+  --info-fg: #ddd6fe;
+  --g-right: #60a5fa;
+  --g-center: #c084fc;
+  --g-left: #f87171;
+  --g-independent: #34d399;
+  --g-foreign: #22d3ee;
+  --g-gov_vendor: #fbbf24;
+  --g-press: #60a5fa;
+  --g-research: #c084fc;
+  --g-lab: #f472b6;
+}
+
+[data-theme="sepia"] {
+  color-scheme: light;
+  --bg: #f4ecd8;
+  --fg: #3b2f22;
+  --card: #faf4e4;
+  --muted: #ebe1c8;
+  --muted-fg: #5e4c37;
+  --border: #d8c9a6;
+  --border-strong: #8a7656;
+  --ring: #1e40af;
+  --chile: #9f1d1d;
+  --chile-blue: #1e40af;
+  --cyber: #7c3a0a;
+  --cyber-strip: #2a2117;
+  --cyber-glow: #d97706;
+  --ai: #5b21b6;
+  --on-accent: #ffffff;
+  --ok: #14532d;
+  --bad: #9f1d1d;
+  --warn-bg: #f3dfa6;
+  --warn-fg: #5c2d06;
+  --danger-bg: #f1d0c0;
+  --danger-fg: #6b1414;
+  --info-bg: #e4d9ee;
+  --info-fg: #3b1a70;
+  --g-right: #1e40af;
+  --g-center: #6b21a8;
+  --g-left: #9f1d1d;
+  --g-independent: #065f46;
+  --g-foreign: #155e75;
+  --g-gov_vendor: #92400e;
+  --g-press: #1e40af;
+  --g-research: #6b21a8;
+  --g-lab: #9d174d;
+}
+
+/* Per-feed accent: data-feed on any element sets --feed for strips, active chips and focus rings inside it. */
+[data-feed="chile"] {
+  --feed: var(--chile);
+  --feed-2: var(--chile-blue);
+}
+[data-feed="cyber"] {
+  --feed: var(--cyber);
+  --feed-2: var(--cyber-glow);
+}
+[data-feed="ai"] {
+  --feed: var(--ai);
+  --feed-2: var(--ai);
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-fg);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ring: var(--ring);
+  --color-feed: var(--feed, var(--fg));
+  --color-feed-2: var(--feed-2, var(--fg));
+  --color-on-accent: var(--on-accent);
+  --color-chile: var(--chile);
+  --color-chile-blue: var(--chile-blue);
+  --color-cyber: var(--cyber);
+  --color-ai: var(--ai);
+  --color-ok: var(--ok);
+  --color-bad: var(--bad);
+  --color-warn: var(--warn-bg);
+  --color-warn-foreground: var(--warn-fg);
+  --color-danger: var(--danger-bg);
+  --color-danger-foreground: var(--danger-fg);
+  --color-info: var(--info-bg);
+  --color-info-foreground: var(--info-fg);
+  --font-serif: "Newsreader Variable", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Reading settings. Text size scales the whole page (rem); the measure is the reading column width. */
+html[data-size="s"] {
+  font-size: 93.75%;
+}
+html[data-size="m"] {
+  font-size: 100%;
+}
+html[data-size="l"] {
+  font-size: 112.5%;
+}
+html[data-size="xl"] {
+  font-size: 125%;
+}
+:root {
+  --measure: 40rem;
+}
+html[data-width="narrow"] {
+  --measure: 34rem;
+}
+html[data-width="wide"] {
+  --measure: 48rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--feed, var(--ring));
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--feed, var(--ring)) 25%, transparent);
+  }
+  a {
+    text-underline-offset: 0.18em;
+  }
+}
+
+@layer components {
+  /* Body text of briefings: serif by default, sans when chosen. Headlines stay serif. */
+  .reading {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+  }
+  html[data-font="sans"] .reading {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+  }
+  .measure {
+    max-width: var(--measure);
+  }
+  .headline {
+    font-family: var(--font-serif);
+    font-optical-sizing: auto;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .kicker {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Feed strip: Chile blue over red, Cyber amber on dark, AI violet. */
+  .feed-strip {
+    background: var(--feed, var(--border-strong));
+  }
+  [data-feed="chile"] .feed-strip,
+  .feed-strip[data-feed="chile"] {
+    background: linear-gradient(to bottom, var(--chile-blue) 0 38%, var(--chile) 38% 100%);
+  }
+  [data-feed="cyber"] .feed-strip,
+  .feed-strip[data-feed="cyber"] {
+    background: var(--cyber-strip);
+    box-shadow: inset -2px 0 0 var(--cyber-glow);
+  }
+  .feed-rule {
+    background: var(--feed, var(--border-strong));
+  }
+  [data-feed="chile"] .feed-rule,
+  .feed-rule[data-feed="chile"] {
+    background: linear-gradient(to right, var(--chile-blue) 0 38%, var(--chile) 38% 100%);
+  }
+  [data-feed="cyber"] .feed-rule,
+  .feed-rule[data-feed="cyber"] {
+    background: linear-gradient(to bottom, var(--cyber-strip) 0 60%, var(--cyber-glow) 60% 100%);
+  }
+
+  /* Coverage bar segments: --g is the group colour. */
+  .seg {
+    height: 0.6rem;
+    border-radius: 2px;
+    flex: 1 1 0;
+    min-width: 0.9rem;
+  }
+  .seg-covered {
+    background: var(--g);
+  }
+  .seg-missing {
+    border: 1.5px solid var(--g);
+    background: repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--g) 45%, transparent) 0 1.5px,
+      transparent 1.5px 4.5px
+    );
+  }
+  .seg-unchecked {
+    border: 1px dashed var(--border-strong);
+    background: transparent;
+  }
+  .swatch {
+    display: inline-block;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 2px;
+    flex: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pulse-soft {
+  50% {
+    opacity: 0.55;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 150ms ease-out;
+}
+.animate-slide-in-right {
+  animation: slide-in-right 200ms ease-out;
+}
+.animate-slide-in-left {
+  animation: slide-in-left 200ms ease-out;
+}
+.animate-pop-in {
+  animation: pop-in 120ms ease-out;
+}
+.skeleton {
+  background: var(--muted);
+  animation: pulse-soft 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

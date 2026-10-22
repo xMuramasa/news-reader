@@ -8,11 +8,14 @@
   ],
   "scripts": {
     "typecheck": "bun scripts/typecheck.ts",
-    "test": "bun test",
+    "test": "bun test --path-ignore-patterns='apps/ui/**'",
+    "test:ui": "bun run --cwd apps/ui test",
+    "build:ui": "bun run --cwd apps/ui build",
     "test:publisher": "python3 -I -m unittest discover -s publisher/tests -t .",
     "gen:prompts": "bun scripts/gen-prompts.ts",
     "gen:prompts:check": "bun scripts/gen-prompts.ts --check",
-    "check": "bun run typecheck && bun run test && bun run test:publisher && bun run gen:prompts:check",
+    "check": "bun run typecheck && bun run test && bun run test:ui && bun run build:ui && bun run test:publisher && bun run gen:prompts:check",
+    "smoke": "bun scripts/smoke.ts",
     "install:publisher": "bun scripts/install-publisher.ts"
   },
   "dependencies": {

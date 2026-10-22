@@ -184,7 +184,9 @@ Unknown values for the fixed lists are dropped and returned as warnings; the edi
 ## MongoDB
 
 - Image `mongo:9.0.4`, `--wiredTigerCacheSizeGB 0.25`, auth on: a root user plus `news_app` with readWrite on db
-  `news`. Credentials in `news/.credentials` (mode 600).
+  `news` and `news_schema`, a role holding only `collMod` on `news` (the API re-applies its validators with `collMod` on
+  every start, which readWrite doesn't allow; without it the API starts once and then fails on every restart). Both are
+  created by `docker/mongo-init/01-app-user.js` on first start. Credentials in `news/.credentials` (mode 600).
 - Own Docker network `news-internal`, shared only with news-api. No ports, not on `proxy`.
 - Collections:
   - `editions`: `_id` = `<feed>-<YYYYMMDD>-<HHMMSS>` (run time), `source_run` (unique), feed, dates, title, lead,
@@ -264,6 +266,15 @@ Rendering: every field is plain text (React escapes it), no Markdown and no raw 
 a new tab with `rel="noopener noreferrer"`. CSP with no external origins. A Bun static server serves the Vite build
 with SPA fallback and long cache headers for hashed assets.
 
+Phase 2 details: the UI reads the API shapes from `@news/schema` (`api.ts`, types only; the API is typed against the
+same file). `/favorites` lists favorites in saved order from `GET /api/favorites`; its feed, tag, date and search
+filters apply in the browser to the loaded favorites (the endpoint has no filters), and a favorite whose story is gone
+shows its snapshot. A story counts as read once its page is opened, it is reached with `j`/`k`, or its edition is
+marked read. Reading settings default to the system light/dark theme until one is chosen. The static server sends
+`default-src 'self'` with `script-src 'self'` and `img-src 'self'` (no inline scripts; inline styles stay allowed for
+Radix's scroll lock), `/api/*` answers 404 there (Caddy routes it), and the theme is applied before first paint by a
+same-origin `theme-init.js`.
+
 ## Repo layout
 
 ```
@@ -274,9 +285,9 @@ news-reader/
   publisher/         news_publisher.py + tests
   jobs/              chile.md, cyber.md, ai.md; legacy/ keeps today's Markdown prompts for rollback
   config/            outlets.json (outlet -> lean), stack.json (your software)
-  scripts/           gen-prompts, typecheck, install-publisher
+  scripts/           gen-prompts, typecheck, install-publisher, smoke
   test/fixtures/     real run archives and hand-converted edition fixtures (valid + one per hard error)
-  docker/            Dockerfiles
+  docker/            api/ui Dockerfiles, compose.test.yml (smoke stack), mongo-init/ (app user)
 ```
 
 Bun workspaces. Private repo `xMuramasa/news-reader`, direct commits to `main`.
@@ -297,7 +308,9 @@ on `/healthz`, the backup dump, README, gitleaks, and push the homelab repo.
 - Publisher (Python unittest): framed and old-format archives, fenced JSON, invalid JSON, a 422 alerts only once, API
   down (silent, then the 2-hour fallback), short message format.
 - UI: typecheck, build, component tests for the story card, coverage bar and link sanitizing.
-- Smoke: built containers in a temporary compose project; POST a fixture, then fetch `/`, one asset and `/api/stories`.
+- Smoke (`bun run smoke`): built containers in a temporary compose project `news-reader-test-<random>` (Mongo with auth,
+  app containers read-only as uid 1000); POST the three fixtures, then fetch `/`, one asset and the public API, check the
+  favorite Origin rule, restart the API against the existing database, and always `down -v`.
 
 ## Rollout
 

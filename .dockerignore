@@ -1,0 +1,29 @@
+# Build context for docker/api.Dockerfile and docker/ui.Dockerfile: sources, manifests and config only.
+**/node_modules
+**/dist
+**/coverage
+**/*.log
+**/__pycache__
+**/*.pyc
+.git
+.gitignore
+.env
+.env.*
+**/.env
+**/.env.*
+.credentials*
+**/.credentials*
+.claude
+CLAUDE.md
+AGENTS.md
+.DS_Store
+
+# Not needed in any image
+**/test
+**/tests
+test
+publisher
+jobs
+scripts
+docker
+*.md

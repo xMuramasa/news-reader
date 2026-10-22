@@ -10,7 +10,12 @@ import {
   isStoryId,
   isValidDate,
   normalizeFilterTag,
+  type EditionSummary,
+  type EditionView,
+  type FavoriteView,
+  type FeedInfo,
   type FeedId,
+  type StoryView,
 } from "@news/schema";
 import type { Document, Filter } from "mongodb";
 import type { Collections, EditionDoc, FavoriteDoc, StoryDoc } from "./db.ts";
@@ -52,7 +57,7 @@ export interface PublicDeps {
 // ---------------------------------------------------------------------------------------------------------------
 // Shapes
 
-export function storyView(s: StoryDoc, favorite: boolean) {
+export function storyView(s: StoryDoc, favorite: boolean): StoryView {
   return {
     id: s._id,
     edition_id: s.edition_id,
@@ -81,7 +86,7 @@ export function storyView(s: StoryDoc, favorite: boolean) {
   };
 }
 
-export function editionSummary(e: EditionDoc) {
+export function editionSummary(e: EditionDoc): EditionSummary {
   return {
     id: e._id,
     feed: e.feed,
@@ -177,7 +182,7 @@ export function publicRoutes(deps: PublicDeps): Route[] {
           cols.editions.countDocuments(visible),
           cols.stories.countDocuments({ feed: id, edition_id: { $nin: vis.hidden } }),
         ]);
-        return {
+        const info: FeedInfo = {
           id,
           label: def.label,
           emoji: def.emoji,
@@ -187,6 +192,7 @@ export function publicRoutes(deps: PublicDeps): Route[] {
           latest: latest ? editionSummary(latest) : null,
           counts: { editions, stories },
         };
+        return info;
       }),
     );
     return json(200, { feeds });
@@ -241,17 +247,16 @@ export function publicRoutes(deps: PublicDeps): Route[] {
         .project<{ _id: string; run_at: Date }>({ _id: 1, run_at: 1 })
         .toArray(),
     ]);
-    return json(200, {
-      edition: {
-        ...editionSummary(e),
-        markets: e.markets,
-        gaps: e.gaps,
-        stories: stories.map((s) => storyView(s, favs.has(s._id))),
-        prev: prev?._id ?? null,
-        next: next?._id ?? null,
-        same_day: sameDay.map((r) => ({ id: r._id, run_at: r.run_at.toISOString(), latest: !vis.hidden.includes(r._id) })),
-      },
-    });
+    const edition: EditionView = {
+      ...editionSummary(e),
+      markets: e.markets,
+      gaps: e.gaps,
+      stories: stories.map((s) => storyView(s, favs.has(s._id))),
+      prev: prev?._id ?? null,
+      next: next?._id ?? null,
+      same_day: sameDay.map((r) => ({ id: r._id, run_at: r.run_at.toISOString(), latest: !vis.hidden.includes(r._id) })),
+    };
+    return json(200, { edition });
   };
 
   const listStories = async (_req: Request, _p: string[], url: URL) => {
@@ -363,7 +368,7 @@ export function publicRoutes(deps: PublicDeps): Route[] {
     const stories = await cols.stories.find({ _id: { $in: items.map((f) => f._id) } }).toArray();
     const byId = new Map(stories.map((s) => [s._id, s]));
     return json(200, {
-      favorites: items.map((f) => {
+      favorites: items.map((f): FavoriteView => {
         const s = byId.get(f._id);
         return {
           story_id: f._id,
