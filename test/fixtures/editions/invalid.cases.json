@@ -1,0 +1,74 @@
+{
+  "invalid.missing-headline.json": {
+    "error": "stories[0].headline: is required",
+    "layer": "schema"
+  },
+  "invalid.wrong-type-rank.json": {
+    "error": "stories[0].rank: must be number",
+    "layer": "schema"
+  },
+  "invalid.wrong-type-stories.json": {
+    "error": "stories: must be array",
+    "layer": "schema"
+  },
+  "invalid.unknown-feed.json": {
+    "error": "feed: unknown feed, must be one of: chile, cyber, ai",
+    "layer": "schema"
+  },
+  "invalid.wrong-schema.json": {
+    "error": "schema: must be \"news-edition/v1\"",
+    "layer": "schema"
+  },
+  "invalid.bad-section.json": {
+    "error": "stories[0].section: must be one of: top, independent, fact_check, quick_hit",
+    "layer": "schema"
+  },
+  "invalid.bad-coverage-group.json": {
+    "error": "stories[0].coverage[0].group: must be one of: right, center, left, independent, foreign",
+    "layer": "schema"
+  },
+  "invalid.duplicate-slug.json": {
+    "error": "stories[1].slug: duplicate slug \"macrozona-sur-emergency\"",
+    "layer": "schema"
+  },
+  "invalid.javascript-url.json": {
+    "error": "stories[0].sources[0].url: must be an absolute http(s) URL",
+    "layer": "schema"
+  },
+  "invalid.relative-url.json": {
+    "error": "stories[0].sources[0].url: must be an absolute http(s) URL",
+    "layer": "schema"
+  },
+  "invalid.headline-too-long.json": {
+    "error": "stories[0].headline: must be at most 200 characters",
+    "layer": "schema"
+  },
+  "invalid.too-many-details.json": {
+    "error": "stories[0].details: must have at most 10 items",
+    "layer": "schema"
+  },
+  "invalid.no-stories.json": {
+    "error": "stories: must have 1-40 stories",
+    "layer": "schema"
+  },
+  "invalid.too-many-stories.json": {
+    "error": "stories: must have 1-40 stories",
+    "layer": "schema"
+  },
+  "invalid.bad-date.json": {
+    "error": "edition_date: must be a date YYYY-MM-DD",
+    "layer": "schema"
+  },
+  "invalid.not-object.json": {
+    "error": "(edition): must be a JSON object",
+    "layer": "schema"
+  },
+  "invalid.missing-source-run.json": {
+    "error": "source_run: is required",
+    "layer": "ingest"
+  },
+  "invalid.job-id-mismatch.json": {
+    "error": "source_run.job_id: d3a7c91070f7 is not the chile job (7a38c16d35fd)",
+    "layer": "ingest"
+  }
+}

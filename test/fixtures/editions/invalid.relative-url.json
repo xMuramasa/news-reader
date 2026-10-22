@@ -1,0 +1,50 @@
+{
+  "schema": "news-edition/v1",
+  "feed": "chile",
+  "edition_date": "2026-10-21",
+  "title": "Chile — Wednesday, 21 October 2026",
+  "lead": "The Senate extended the Macrozona Sur state of emergency.",
+  "language": "en",
+  "stories": [
+    {
+      "slug": "macrozona-sur-emergency",
+      "section": "top",
+      "rank": 1,
+      "headline": "Senate extends the Macrozona Sur state of emergency",
+      "summary": "The Senate extended the state of emergency by 30 days, 36–4 (20 Oct).",
+      "event_date": "2026-10-20",
+      "is_update": false,
+      "thread": "macrozona-sur-emergency",
+      "verification": "confirmed",
+      "action": null,
+      "details": [],
+      "coverage": [
+        {
+          "group": "right",
+          "covered": true,
+          "outlets": [
+            "Emol"
+          ]
+        }
+      ],
+      "framing": [],
+      "blindspot": null,
+      "sources": [
+        {
+          "outlet": "Emol",
+          "url": "/noticias/2026/10/20/example.html"
+        }
+      ],
+      "tags": [
+        "topic:congress",
+        "region:chile"
+      ]
+    }
+  ],
+  "gaps": [],
+  "source_run": {
+    "job_id": "7a38c16d35fd",
+    "file": "2026-10-21_08-00-04.md"
+  },
+  "generated_at": "2026-10-21T08:00:04-03:00"
+}

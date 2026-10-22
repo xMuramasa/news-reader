@@ -1,0 +1,15 @@
+{
+  "schema": "news-edition/v1",
+  "feed": "chile",
+  "edition_date": "2026-10-21",
+  "title": "Chile — Wednesday, 21 October 2026",
+  "lead": "The Senate extended the Macrozona Sur state of emergency.",
+  "language": "en",
+  "stories": [],
+  "gaps": [],
+  "source_run": {
+    "job_id": "7a38c16d35fd",
+    "file": "2026-10-21_08-00-04.md"
+  },
+  "generated_at": "2026-10-21T08:00:04-03:00"
+}

@@ -1,0 +1,121 @@
+{
+  "context_window": 80,
+  "software": [
+    { "slug": "ubuntu", "name": "Ubuntu 26.04 server", "aliases": ["Ubuntu", "Canonical"] },
+    { "slug": "linux-kernel", "name": "Linux kernel", "aliases": ["Linux kernel"] },
+    {
+      "slug": "openssh",
+      "name": "OpenSSH",
+      "aliases": ["OpenSSH", "sshd", { "text": "SSH", "case_sensitive": true, "context": ["\\blog-?ins?\\b", "\\bpassword", "\\bkeys?\\b", "\\bserver", "brute", "vulnerab", "CVE-"] }]
+    },
+    {
+      "slug": "sudo",
+      "name": "sudo",
+      "note": "Only the sudo program itself, not shell commands that start with sudo.",
+      "aliases": ["sudo", "sudo-rs"],
+      "context": ["vulnerab", "\\bflaws?\\b", "\\bbugs?\\b", "CVE-", "exploit", "privilege", "local root", "advisory"],
+      "exclude": ["\\bsudo\\s+(?:-[A-Za-z]+\\s+)*(?:apt|apt-get|dpkg|dnf|yum|snap|systemctl|service|docker|npm|pip3?|ufw|nano|vim?|cat|rm|reboot|su|-i|-s)\\b"]
+    },
+    { "slug": "glibc", "name": "glibc", "aliases": ["glibc", "GNU C Library"] },
+    { "slug": "systemd", "name": "systemd", "aliases": ["systemd"] },
+    { "slug": "docker", "name": "Docker / Compose", "aliases": ["Docker", "Docker Compose", "Docker Engine", "Docker Desktop"] },
+    { "slug": "containerd", "name": "containerd", "aliases": ["containerd"] },
+    { "slug": "runc", "name": "runc", "aliases": ["runc"] },
+    { "slug": "caddy", "name": "Caddy", "aliases": [{ "text": "Caddy", "case_sensitive": true }, "Caddyserver", "caddy-server"] },
+    {
+      "slug": "cloudflare",
+      "name": "Cloudflare DNS",
+      "note": "Cloudflare is often just the reporter of an attack; only match when Cloudflare's own services are the subject.",
+      "aliases": ["Cloudflare"],
+      "context": ["\\bDNS\\b", "1\\.1\\.1\\.1", "\\boutage", "\\btunnel", "\\bWARP\\b", "Zero Trust", "\\bAPI tokens?\\b", "\\baccounts?\\b", "dashboard", "vulnerab", "\\bbreach", "compromis", "\\bflaw", "CVE-"]
+    },
+    { "slug": "tailscale", "name": "Tailscale", "aliases": ["Tailscale", "tailscaled"] },
+    { "slug": "wireguard", "name": "WireGuard", "aliases": ["WireGuard"] },
+    { "slug": "adguard-home", "name": "AdGuard Home", "aliases": ["AdGuard Home", "AdGuard"] },
+    { "slug": "home-assistant", "name": "Home Assistant", "aliases": ["Home Assistant", "HomeAssistant"] },
+    { "slug": "syncthing", "name": "Syncthing", "aliases": ["Syncthing"] },
+    { "slug": "uptime-kuma", "name": "Uptime Kuma", "aliases": ["Uptime Kuma", "Uptime-Kuma"] },
+    {
+      "slug": "homepage",
+      "name": "Homepage (gethomepage)",
+      "note": "\"homepage\" is a common word: require the project name or dashboard context.",
+      "aliases": [
+        "gethomepage",
+        { "text": "Homepage", "case_sensitive": true, "context": ["dashboard", "self-hosted", "homelab", "gethomepage", "widgets?\\b", "\\bdocker\\b"] }
+      ]
+    },
+    { "slug": "dozzle", "name": "Dozzle", "aliases": ["Dozzle"] },
+    { "slug": "backrest", "name": "Backrest / restic", "aliases": [{ "text": "Backrest", "case_sensitive": true }, "restic"] },
+    { "slug": "beszel", "name": "Beszel", "aliases": ["Beszel"] },
+    { "slug": "postgresql", "name": "PostgreSQL", "aliases": ["PostgreSQL", "Postgres", "libpq"] },
+    { "slug": "sqlite", "name": "SQLite", "aliases": ["SQLite"] },
+    { "slug": "python", "name": "Python / PyPI", "aliases": ["Python", "CPython", "PyPI", "certifi"] },
+    {
+      "slug": "node",
+      "name": "Node.js / npm",
+      "note": "Bare \"Node\" needs JavaScript context so Tor exit nodes and network nodes don't match.",
+      "aliases": [
+        "Node.js",
+        "NodeJS",
+        "npm",
+        { "text": "Node", "case_sensitive": true, "context": ["\\bnpm\\b", "JavaScript", "TypeScript", "\\bruntime", "\\bv?\\d+\\.\\d+", "Deno", "\\bBun\\b", "Brotli", "\\bundici\\b"] }
+      ]
+    },
+    {
+      "slug": "bun",
+      "name": "Bun",
+      "note": "Bun is also a word (and a bread roll): require the exact capitalized name plus JavaScript context.",
+      "aliases": [
+        "bun.sh",
+        "oven-sh",
+        "bunx",
+        { "text": "Bun", "case_sensitive": true, "context": ["JavaScript", "TypeScript", "\\bruntime", "\\bnpm\\b", "Node", "Deno", "\\bbundler", "\\bv?\\d+\\.\\d+", "package manager", "\\bshipped\\b", "\\bupdate"] }
+      ]
+    },
+    {
+      "slug": "github",
+      "name": "GitHub",
+      "note": "\"published on GitHub\" is about the project, not about GitHub.",
+      "aliases": ["GitHub", "GitHub Actions"],
+      "exclude": ["\\b(?:on|via|from|to)\\s+GitHub\\b(?!\\s+(?:accounts?|Actions|tokens?))"]
+    },
+    { "slug": "claude-code", "name": "Claude Code", "aliases": ["Claude Code"] },
+    {
+      "slug": "mcp",
+      "name": "MCP servers",
+      "note": "MCP is also Microsoft Certified Professional and other things: bare MCP needs AI context.",
+      "aliases": [
+        "Model Context Protocol",
+        { "text": "MCP", "case_sensitive": true, "context": ["\\bservers?\\b", "\\bagents?\\b", "\\bAI\\b", "\\bLLM", "Claude", "Anthropic", "\\btools?\\b", "protocol"] }
+      ]
+    },
+    { "slug": "hermes-agent", "name": "Hermes Agent", "aliases": ["Hermes Agent"] },
+    { "slug": "macos", "name": "macOS", "aliases": ["macOS", "Mac OS X", "OS X"] },
+    { "slug": "obsidian", "name": "Obsidian", "aliases": [{ "text": "Obsidian", "case_sensitive": true, "context": ["\\bnotes?\\b", "plugin", "\\bvaults?\\b", "markdown", "\\bapp\\b", "\\bsync\\b", "vulnerab", "CVE-"] }] },
+    { "slug": "android", "name": "Android (Samsung Galaxy S21 FE)", "aliases": ["Android", "Samsung Galaxy", "Galaxy S21", "One UI"] },
+    { "slug": "samsung", "name": "Samsung", "aliases": ["Samsung"] },
+    { "slug": "chrome", "name": "Chrome", "aliases": ["Chrome", "Chromium"] },
+    {
+      "slug": "telegram",
+      "name": "Telegram",
+      "note": "Telegram channels and bots are where criminals sell data; only match Telegram the app.",
+      "aliases": ["Telegram"],
+      "exclude": [
+        "\\b(?:on|via|over|through|in|from|to)\\s+(?:a\\s+|an\\s+|the\\s+|private\\s+|public\\s+)*Telegram(?:\\s+(?:channels?|groups?|bots?|chats?|accounts?))?\\b",
+        "\\bTelegram\\s+(?:channels?|groups?|bots?)\\b"
+      ]
+    },
+    { "slug": "google-workspace", "name": "Gmail / Google Workspace", "aliases": ["Gmail", "Google Workspace", "G Suite"] },
+    {
+      "slug": "intel",
+      "name": "Intel (Dell OptiPlex)",
+      "note": "\"Intel\" is also short for intelligence (threat intel).",
+      "aliases": [{ "text": "Intel", "case_sensitive": true, "context": ["\\bCPUs?\\b", "processor", "microcode", "firmware", "\\bchips?\\b", "\\bSGX\\b", "\\bTDX\\b", "\\bCSME\\b", "\\bME\\b", "\\bBIOS\\b", "UEFI", "\\bCore\\b", "\\bXeon\\b", "Arc\\b"] }]
+    },
+    {
+      "slug": "dell",
+      "name": "Dell OptiPlex",
+      "aliases": ["OptiPlex", { "text": "Dell", "case_sensitive": true, "context": ["\\bBIOS\\b", "UEFI", "firmware", "OptiPlex", "SupportAssist", "\\bdrivers?\\b", "\\blaptops?\\b", "\\bPCs?\\b", "vulnerab", "CVE-"] }]
+    }
+  ]
+}
