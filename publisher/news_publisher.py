@@ -107,6 +107,8 @@ def extract_answer(archive: str) -> tuple[str, str | None]:
     return "answer", answer
 
 
+_UPDATE_PREFIX_RE = re.compile(r"^\s*\(?update\)?\s*[:\-–—]\s*", re.I)
+
 _FENCE_RE = re.compile(r"^```[A-Za-z0-9_-]*[ \t]*\r?\n(.*?)\r?\n?```[ \t]*$", re.S)
 
 
@@ -247,7 +249,12 @@ def short_message(info: dict, edition: dict, ed_id: str, file: str, public_url: 
     lines = []
     for i, s in enumerate(picked[:MAX_STORY_LINES], 1):
         h = plain(s.get("headline"), 160) or "(untitled)"
-        lines.append(f"{i}. {h}{' (update)' if s.get('is_update') is True else ''}")
+        if s.get("is_update") is True:
+            # The model sometimes writes "Update: ..." itself; show the marker once, at the end.
+            h = _UPDATE_PREFIX_RE.sub("", h, count=1) or h
+            if not h.lower().rstrip(" .").endswith("(update)"):
+                h += " (update)"
+        lines.append(f"{i}. {h}")
     if len(picked) > MAX_STORY_LINES:
         lines.append(f"+{len(picked) - MAX_STORY_LINES} more")
     tail = []

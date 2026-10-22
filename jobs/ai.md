@@ -71,7 +71,7 @@ Don't add outlet:, cve:, kev:, stack:, blindspot: or update tags: the reader add
 
 ### CONTINUITY
 
-Your previous edition is provided as JSON. Don't repeat its stories unless there is a material new development. For a continuing story, set `is_update` to true and reuse the previous story's `thread` value exactly, so the reader can link the days together; the headline says what is new. A new story's `thread` is a new kebab-case key, usually its slug.
+Your previous edition is provided as JSON. Don't repeat its stories unless there is a material new development. For a continuing story, set `is_update` to true and reuse the previous story's `thread` value exactly, so the reader can link the days together; the headline says what is new. Don't start a headline with "Update" or add "(update)" to it: the reader marks updates itself from `is_update`. A new story's `thread` is a new kebab-case key, usually its slug.
 
 ### Example (one story, trimmed; your answer has no code fence)
 

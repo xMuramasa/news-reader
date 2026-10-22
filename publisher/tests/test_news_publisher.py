@@ -224,6 +224,19 @@ class MessageTests(unittest.TestCase):
             "📖 https://news.lab.x-muramasa.dev/e/chile-20261021-115606",
         ]))
 
+    def test_update_marker_appears_once(self):
+        e = edition("chile")
+        top = [s for s in e["stories"] if s["section"] == "top"]
+        top[0]["is_update"], top[0]["headline"] = True, "Update: Fondo E: Rau tells people near retirement to wait"
+        top[1]["is_update"], top[1]["headline"] = True, "UPDATE — Senate session moved (update)"
+        top[2]["is_update"], top[2]["headline"] = False, "Update: not marked as an update"
+        msg = np.short_message(np.FEEDS[CHILE], e, "chile-20261022-141614", "2026-10-22_14-16-14.md", PUBLIC)
+        lines = msg.splitlines()
+        self.assertIn("1. Fondo E: Rau tells people near retirement to wait (update)", lines)
+        self.assertIn("2. Senate session moved (update)", lines)
+        self.assertIn("3. Update: not marked as an update", lines)
+        self.assertEqual(msg.lower().count("(update)"), 2)
+
     def test_cyber_short_message_has_the_patch_line(self):
         info = np.FEEDS[CYBER]
         msg = np.short_message(info, edition("cyber"), "cyber-20261021-132150", "2026-10-21_13-21-50.md", PUBLIC)
