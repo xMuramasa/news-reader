@@ -42,7 +42,7 @@ MAX_MESSAGE = 3500
 MAX_STORY_LINES = 7
 MAX_RESPONSE_BYTES = 1_000_000
 
-DONE = {"published", "failed", "silent", "skipped_legacy"}
+DONE = {"published", "failed", "silent", "skipped_legacy", "job_failed"}
 WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -70,8 +70,25 @@ def is_silent(text: str) -> bool:
     return any(c.lower() in SILENT_TOKENS for c in (t, lines[0], lines[-1]))
 
 
+_JOB_FAILED_RE = re.compile(r"\A# Cron Job: .*\((?:FAILED)\)[ \t]*\r?\n")
+_JOB_NO_ANSWER_RE = re.compile(r"(?m)^\*\*Status:\*\* BLOCKED\b|^Script gate returned `wakeAgent=false`")
+
+
+def job_did_not_answer(archive: str) -> bool:
+    """True for run documents Hermes writes when the job itself failed, was blocked, or skipped the agent.
+
+    Hermes already sends its own failure notice for these, so the publisher records them quietly instead of
+    reporting them as invalid JSON. A real answer always has a `## Response` section.
+    """
+    if _RESPONSE_FRAME_RE.search(archive) or "\n## Response\n" in archive:
+        return False
+    return bool(_JOB_FAILED_RE.match(archive) or _JOB_NO_ANSWER_RE.search(archive) or "\n## Error\n" in archive)
+
+
 def extract_answer(archive: str) -> tuple[str, str | None]:
-    """("answer", text), ("silent", None) or ("unusable", None) for a missing or truncated frame."""
+    """("answer", text), ("silent", None), ("job_failed", None) or ("unusable", None) for a truncated frame."""
+    if job_did_not_answer(archive):
+        return "job_failed", None
     prompt_frame = _PROMPT_FRAME_RE.search(archive)
     if prompt_frame is not None and archive.find(_PROMPT_HEADING) == prompt_frame.end() - len(_PROMPT_HEADING):
         response_start = prompt_frame.end() + int(prompt_frame.group(1)) + len(_PROMPT_SEPARATOR)
@@ -452,6 +469,10 @@ class Tick:
             return
         if kind == "silent":
             self.record(key, entry, status="silent")
+            return
+        if kind == "job_failed":
+            # Hermes already alerted about the failed run; nothing to publish and nothing to add.
+            self.record(key, entry, status="job_failed")
             return
 
         edition, error = parse_answer(answer or "")

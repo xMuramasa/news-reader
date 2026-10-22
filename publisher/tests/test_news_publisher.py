@@ -343,6 +343,32 @@ class PublisherTests(unittest.TestCase):
         self.assertEqual(self.env.run("2026-10-22_08-00-04.md", 10), "")
         self.assertEqual(self.api.requests, [])
 
+    def test_failed_or_blocked_job_runs_are_recorded_quietly(self):
+        # Hermes writes these when the job itself failed (e.g. a rate limit) and sends its own alert.
+        failed = (
+            "# Cron Job: Daily Chile news feed (FAILED)\n\n**Job ID:** x\n**Run Time:** 2026-10-22 08:00:50\n"
+            "**Schedule:** 0 8 * * *\n\n## Prompt\n\nWrite the briefing.\n\n## Error\n\n```\n"
+            "RuntimeError: HTTP 429: rate limited\n```\n"
+        )
+        blocked = (
+            "# Cron Job: Daily cyber news feed\n\n**Job ID:** x\n**Run Time:** 2026-10-22 08:30:50\n"
+            "**Status:** BLOCKED\n\nThe assembled prompt tripped the cron injection scanner.\n"
+        )
+        self.assertEqual(np.extract_answer(failed), ("job_failed", None))
+        self.assertEqual(np.extract_answer(blocked), ("job_failed", None))
+        # A real answer that merely mentions "## Error" in its text is still an answer.
+        self.assertEqual(np.extract_answer(framed("x\n## Error\n"))[0], "answer")
+
+        self.env.initialize()
+        self.env.archive(CHILE, "2026-10-22_08-00-50.md", failed)
+        self.env.archive(CYBER, "2026-10-22_08-30-50.md", blocked)
+        self.assertEqual(self.env.run("2026-10-22_08-30-50.md"), "")
+        runs = self.env.state()["runs"]
+        self.assertEqual(runs[f"{CHILE}/2026-10-22_08-00-50.md"]["status"], "job_failed")
+        self.assertEqual(runs[f"{CYBER}/2026-10-22_08-30-50.md"]["status"], "job_failed")
+        self.assertEqual(self.env.run("2026-10-22_08-30-50.md", 10), "")
+        self.assertEqual(self.api.requests, [])
+
     def test_markdown_answer_alerts_once(self):
         self.env.initialize()
         text = (ARCHIVES / "chile-2026-10-21_11-56-06.md").read_text(encoding="utf-8")
