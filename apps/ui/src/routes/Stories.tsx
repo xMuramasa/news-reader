@@ -49,12 +49,14 @@ export function Stories() {
       <div className="flex items-end justify-between gap-3 border-b-2 border-foreground pb-2">
         <h1 className="headline text-3xl font-semibold sm:text-4xl">Stories</h1>
       </div>
-      <div className="flex items-center gap-2">
-        <SearchBox value={filters.q} onChange={onSearch} autoFocus={focusSearch} />
+      <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+        <div className="flex w-full min-w-0 sm:w-auto sm:flex-1">
+          <SearchBox value={filters.q} onChange={onSearch} autoFocus={focusSearch} />
+        </div>
         <SortSelect value={filters.sort} onChange={(sort) => setFilters({ ...filters, sort })} />
-        <Button variant="outline" className="h-10 lg:hidden" onClick={() => setSheet(true)} aria-label={`Filters${count ? `, ${count} active` : ""}`}>
+        <Button variant="outline" className="ml-auto h-10 sm:ml-0 lg:hidden" onClick={() => setSheet(true)} aria-label={`Filters${count ? `, ${count} active` : ""}`}>
           <ListFilterIcon aria-hidden />
-          <span className="hidden sm:inline">Filters</span>
+          <span>Filters</span>
           {count > 0 && <span className="rounded-full bg-foreground px-1.5 text-xs text-background">{count}</span>}
         </Button>
       </div>

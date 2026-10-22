@@ -12,6 +12,7 @@ import { FEEDS, sectionTitle } from "@/lib/feeds";
 import { markRead } from "@/lib/read-state";
 import { useTitle } from "@/lib/title";
 import { cn } from "@/lib/utils";
+import { displayHeadline } from "@/lib/headline";
 
 /** Oldest first, the current story included. */
 export function threadTimeline(r: StoryResponse): StoryView[] {
@@ -39,11 +40,11 @@ function Timeline({ items, currentId }: { items: StoryView[]; currentId: string 
               </p>
               {current ? (
                 <p aria-current="true" className="headline text-[1.05rem] leading-snug font-semibold">
-                  {s.headline} <span className="text-xs font-normal text-muted-foreground">(this story)</span>
+                  {displayHeadline(s)} <span className="text-xs font-normal text-muted-foreground">(this story)</span>
                 </p>
               ) : (
                 <Link to={`/s/${encodeURIComponent(s.id)}`} className="headline text-[1.05rem] leading-snug hover:underline">
-                  {s.headline}
+                  {displayHeadline(s)}
                 </Link>
               )}
             </li>
@@ -58,7 +59,7 @@ export function Story() {
   const { storyId = "" } = useParams();
   const api = useApi();
   const q = useQuery({ queryKey: ["story", storyId], queryFn: () => api.story(storyId) });
-  useTitle(q.data?.story.headline ?? (q.isError ? "Story not found" : "Story"));
+  useTitle((q.data ? displayHeadline(q.data.story) : null) ?? (q.isError ? "Story not found" : "Story"));
   useEffect(() => {
     if (q.data) markRead(q.data.story.id);
   }, [q.data]);

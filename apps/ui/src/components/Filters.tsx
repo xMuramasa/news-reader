@@ -16,7 +16,7 @@ export function SearchBox({
   value,
   onChange,
   autoFocus,
-  placeholder = "Search headlines, summaries, tags…",
+  placeholder = "Search stories…",
 }: {
   value: string;
   onChange: (q: string) => void;

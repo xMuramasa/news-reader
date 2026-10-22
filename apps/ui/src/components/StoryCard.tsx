@@ -11,6 +11,7 @@ import { FEEDS, VERIFICATION_NOTES, groupColor, groupTitle, sectionTitle } from 
 import { markRead, useReadState } from "@/lib/read-state";
 import { tagLabel, tagPrefix } from "@/lib/tags";
 import { cn } from "@/lib/utils";
+import { displayHeadline } from "@/lib/headline";
 
 type Heading = "h1" | "h2" | "h3";
 
@@ -202,10 +203,10 @@ export function StoryCard({
   const full = variant === "full";
   const headline = linkHeadline ? (
     <Link to={`/s/${encodeURIComponent(s.id)}`} className="hover:underline" onClick={() => markRead(s.id)}>
-      {s.headline}
+      {displayHeadline(s)}
     </Link>
   ) : (
-    s.headline
+    displayHeadline(s)
   );
   return (
     <article

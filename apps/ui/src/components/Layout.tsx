@@ -124,7 +124,7 @@ export function Layout() {
           </div>
         </div>
         <nav aria-label="Sections" className="mx-auto max-w-6xl px-4 sm:px-6">
-          <ul className="-mx-1 flex items-center gap-4 overflow-x-auto [scrollbar-width:none]">
+          <ul className="-mx-1 flex items-center gap-3 overflow-x-auto pr-6 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] sm:gap-4 sm:pr-0 sm:[mask-image:none]">
             <li>
               <NavLink to="/" end className={navLink}>
                 Today

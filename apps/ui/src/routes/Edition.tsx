@@ -15,6 +15,7 @@ import { FEEDS } from "@/lib/feeds";
 import { markRead, useReadState } from "@/lib/read-state";
 import { useTitle } from "@/lib/title";
 import { cn } from "@/lib/utils";
+import { displayHeadline } from "@/lib/headline";
 
 export interface EditionSection {
   id: string;
@@ -78,7 +79,7 @@ function Toc({ sections, onPick }: { sections: EditionSection[]; onPick?: () => 
                       setTimeout(() => jumpTo(anchor("story", s.slug)), onPick ? 50 : 0);
                     }}
                   >
-                    {s.headline}
+                    {displayHeadline(s)}
                   </a>
                 </li>
               ))}
