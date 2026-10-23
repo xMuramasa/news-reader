@@ -1,8 +1,8 @@
-Produce a weekly AI news digest for a personal news reader (a web app, plus a short notice in Telegram), covering the past 7 days (up to today). Use web_search and web_extract to find and verify real, dated news from reputable sources (official lab blogs, arXiv, The Verge, Ars Technica, TechCrunch, Reuters, The Information, Hugging Face, GitHub trending, etc.). Only include items published in the last 7 days; verify dates. Never invent items or links.
+Produce a daily AI news digest for a personal news reader (a web app, plus a short notice in Telegram), covering the last ~24 hours (since the previous edition). Use web_search and web_extract to find and verify real, dated news from reputable sources (official lab blogs, arXiv, The Verge, Ars Technica, TechCrunch, Reuters, The Information, Hugging Face, GitHub trending, etc.). Only include items published in the last ~24 hours; verify dates. Never invent items or links.
 
 Your previous edition (JSON) may be provided via continuity. Avoid repeating stories already covered unless there is a significant update, which you mark as an update (see CONTINUITY below).
 
-Keep the digest short: about 10-15 stories in total, one or two sentences each. The old digest sections map onto the JSON sections: Top stories → `top`, Model & product releases → `release`, Open-source & local AI → `open_source`, Research highlights → `research`, Industry, funding & policy → `industry`.
+Keep the digest short: about 5-10 stories in total, one or two sentences each. On a quiet day fewer is fine. The old digest sections map onto the JSON sections: Top stories → `top`, Model & product releases → `release`, Open-source & local AI → `open_source`, Research highlights → `research`, Industry, funding & policy → `industry`.
 
 ## OUTPUT: one JSON object (news-edition/v1)
 
@@ -17,7 +17,7 @@ Every text field is plain text: no Markdown, no HTML, no links inside text (link
 - `schema`: `"news-edition/v1"`
 - `feed`: `"ai"`
 - `edition_date`: today's date in Santiago, YYYY-MM-DD
-- `title`: e.g. `AI weekly — 12–19 October 2026` (max 200 characters)
+- `title`: e.g. `AI daily — 19 October 2026` (max 200 characters)
 - `lead`: one sentence on the biggest story (max 600)
 - `language`: `"en"`
 - `stories`: 1-40 stories, in reading order (fields below)
@@ -47,7 +47,7 @@ Include every field; use null or [] when there is nothing to say.
 - `top` (Top stories): 3-5 most important items, each summary saying why it matters.
 - `release` (Model & product releases): Frontier labs: OpenAI, Anthropic, Google, Meta, xAI, Mistral, DeepSeek, Qwen, etc.
 - `open_source` (Open-source & local AI): Open-weight models, llama.cpp, MLX, Ollama, Whisper, agent frameworks. The reader favors self-hosted/local AI on Apple Silicon.
-- `research` (Research highlights): 2-4 notable papers.
+- `research` (Research highlights): 1-3 notable papers.
 - `industry` (Industry, funding & policy): Brief items.
 
 Skip sections with nothing in them. Each story appears in exactly one section.
@@ -80,7 +80,7 @@ Your previous edition is provided as JSON. Don't repeat its stories unless there
  "schema": "news-edition/v1",
  "feed": "ai",
  "edition_date": "2026-10-19",
- "title": "AI weekly — 12–19 October 2026",
+ "title": "AI daily — 19 October 2026",
  "lead": "Meta released an open-weight frontier model that runs on a pair of Mac Studios.",
  "language": "en",
  "stories": [

@@ -1,6 +1,6 @@
 # news-reader
 
-Hermes news briefings (Chile daily, Cyber daily, AI weekly) as structured JSON editions, stored in MongoDB and read in
+Hermes news briefings (Chile, Cyber and AI, daily) as structured JSON editions, stored in MongoDB and read in
 a web UI. `SPEC.md` is the source of truth for decisions; this file is about the code.
 
 Phase 1: schema, job prompts, API, publisher. Phase 2: the web UI (`apps/ui`), its static server, the Docker images and a

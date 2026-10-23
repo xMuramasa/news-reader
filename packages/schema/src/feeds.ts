@@ -199,7 +199,7 @@ export const FEEDS: Record<FeedId, FeedDef> = {
     label: "AI",
     emoji: "🤖",
     jobId: "7e15c4016256",
-    cadence: "weekly",
+    cadence: "daily",
     sections: [
       { id: "top", title: "Top stories", guide: "3-5 most important items, each summary saying why it matters." },
       {
@@ -213,7 +213,7 @@ export const FEEDS: Record<FeedId, FeedDef> = {
         guide:
           "Open-weight models, llama.cpp, MLX, Ollama, Whisper, agent frameworks. The reader favors self-hosted/local AI on Apple Silicon.",
       },
-      { id: "research", title: "Research highlights", guide: "2-4 notable papers." },
+      { id: "research", title: "Research highlights", guide: "1-3 notable papers." },
       { id: "industry", title: "Industry, funding & policy", guide: "Brief items." },
     ],
     coverageGroups: [

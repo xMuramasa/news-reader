@@ -13,7 +13,7 @@ them sorted by date, with tags and per-story favorites. Telegram gets a short no
 - UI: its own container.
 - Backfill: the first test run of each new job is kept as the starting data. Markdown editions from before the
   switch are not imported.
-- The AI weekly moves to the new system too.
+- The AI digest moves to the new system too (daily since 2026-10-23, was weekly).
 
 ## Flow
 
@@ -35,7 +35,7 @@ publisher -> after a successful store, prints the short Telegram message (Hermes
 - Continuity stays on: each run sees its previous JSON and marks continuing stories `is_update` with the same `thread`.
 - Prompts live in the repo under `jobs/` (`chile.md`, `cyber.md`, `ai.md`). Their schema section is generated from the
   schema package, so prompt and validator can't drift. I apply them to the cron jobs.
-- Schedules unchanged: Chile 08:00, Cyber 08:30, AI Monday 09:00.
+- Schedules: Chile, Cyber and AI every day at 03:00 America/Santiago (since 2026-10-23; was Chile 08:00, Cyber 08:30, AI Monday 09:00).
 
 ### Publisher (`news_publisher.py`)
 

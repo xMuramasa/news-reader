@@ -65,12 +65,13 @@ const RULES: Record<FeedId, Rule> = {
     replace: [
       [
         "Produce a weekly AI news digest covering the past 7 days (up to today).",
-        "Produce a weekly AI news digest for a personal news reader (a web app, plus a short notice in Telegram), covering the past 7 days (up to today).",
+        "Produce a daily AI news digest for a personal news reader (a web app, plus a short notice in Telegram), covering the last ~24 hours (since the previous edition).",
       ],
+      ["Only include items published in the last 7 days; verify dates.", "Only include items published in the last ~24 hours; verify dates."],
     ],
     append: [
       "Your previous edition (JSON) may be provided via continuity. Avoid repeating stories already covered unless there is a significant update, which you mark as an update (see CONTINUITY below).",
-      "Keep the digest short: about 10-15 stories in total, one or two sentences each. The old digest sections map onto the JSON sections: Top stories → `top`, Model & product releases → `release`, Open-source & local AI → `open_source`, Research highlights → `research`, Industry, funding & policy → `industry`.",
+      "Keep the digest short: about 5-10 stories in total, one or two sentences each. On a quiet day fewer is fine. The old digest sections map onto the JSON sections: Top stories → `top`, Model & product releases → `release`, Open-source & local AI → `open_source`, Research highlights → `research`, Industry, funding & policy → `industry`.",
     ],
   },
 };

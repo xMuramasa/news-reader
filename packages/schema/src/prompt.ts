@@ -92,7 +92,7 @@ export const PROMPT_EXAMPLES: Record<FeedId, Record<string, unknown>> = {
     schema: SCHEMA_ID,
     feed: "ai",
     edition_date: "2026-10-19",
-    title: "AI weekly — 12–19 October 2026",
+    title: "AI daily — 19 October 2026",
     lead: "Meta released an open-weight frontier model that runs on a pair of Mac Studios.",
     language: "en",
     stories: [
