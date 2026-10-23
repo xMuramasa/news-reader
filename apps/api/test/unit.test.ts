@@ -139,7 +139,7 @@ describe("cursors", () => {
   test("round trip", () => {
     const c = encodeCursor(STORIES_SORT.newest, doc);
     expect(c).toMatch(/^[A-Za-z0-9_-]+$/);
-    expect(decodeCursor(STORIES_SORT.newest, c)).toEqual([doc.sort_date, doc.run_at, 3, doc._id]);
+    expect(decodeCursor(STORIES_SORT.newest, c)).toEqual([doc.run_at, 3, doc._id]);
   });
 
   test("tampered, foreign or garbage cursors are 400", () => {

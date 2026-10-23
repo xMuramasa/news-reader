@@ -78,6 +78,9 @@ const INDEXES: Record<keyof Collections, IndexDescription[]> = {
     { key: { tags: 1, sort_date: -1 }, name: "tags_sort_date" },
     { key: { thread: 1, sort_date: -1 }, name: "thread_sort_date" },
     { key: { sort_date: -1, run_at: -1, position: 1 }, name: "sort_order" },
+    { key: { run_at: -1, position: 1 }, name: "published_order" },
+    { key: { feed: 1, run_at: -1 }, name: "feed_run_at" },
+    { key: { edition_date: -1 }, name: "edition_date" },
     {
       key: { headline: "text", summary: "text", "details.label": "text", "details.text": "text", tags: "text" },
       name: "stories_text",

@@ -22,20 +22,19 @@ export const EDITIONS_SORT: SortSpec = {
   ],
 };
 
+/** Stories by publish date-time (the edition's run), then reading order within the edition. */
 export const STORIES_SORT: Record<"newest" | "oldest", SortSpec> = {
   newest: {
-    name: "stories-newest",
+    name: "stories-published-newest",
     keys: [
-      { field: "sort_date", dir: -1, type: "string" },
       { field: "run_at", dir: -1, type: "date" },
       { field: "position", dir: 1, type: "int" },
       { field: "_id", dir: 1, type: "string" },
     ],
   },
   oldest: {
-    name: "stories-oldest",
+    name: "stories-published-oldest",
     keys: [
-      { field: "sort_date", dir: 1, type: "string" },
       { field: "run_at", dir: 1, type: "date" },
       { field: "position", dir: 1, type: "int" },
       { field: "_id", dir: 1, type: "string" },

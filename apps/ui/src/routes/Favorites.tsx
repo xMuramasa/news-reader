@@ -26,7 +26,7 @@ export function matchesFavorite(f: FavoriteView, filters: Filters): boolean {
   const s = f.story;
   const feed = s?.feed ?? f.snapshot.feed;
   if (filters.feed && feed !== filters.feed) return false;
-  const date = s?.sort_date ?? f.snapshot.sort_date;
+  const date = s?.edition_date ?? f.snapshot.edition_date;
   if (filters.from && date < filters.from) return false;
   if (filters.to && date > filters.to) return false;
   if (filters.tags.length && (!s || !filters.tags.every((t) => s.tags.includes(t)))) return false;

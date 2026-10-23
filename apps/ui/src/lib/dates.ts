@@ -66,3 +66,27 @@ export function addDays(date: string, days: number): string {
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
 }
+
+const dayTimeParts = new Intl.DateTimeFormat("en-GB", {
+  timeZone: TZ,
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+/** "Wed 21 Oct, 13:21" (Santiago) for an instant such as a story's run_at. */
+export function formatDayTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const part = (type: Intl.DateTimeFormatPartTypes) => dayTimeParts.formatToParts(d).find((x) => x.type === type)?.value ?? "";
+  return `${part("weekday")} ${part("day")} ${part("month")}, ${part("hour")}:${part("minute")}`;
+}
+
+/** The Santiago calendar date (YYYY-MM-DD) of an instant. */
+export function santiagoDate(iso: string): string | null {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : ymd.format(d);
+}

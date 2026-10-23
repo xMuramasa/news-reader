@@ -12,7 +12,7 @@ import type {
   StoryResponse,
   TagsResponse,
 } from "@news/schema";
-import { storiesQuery, type Filters } from "./filters.ts";
+import { storiesQuery, tagsQuery, type Filters } from "./filters.ts";
 
 export class ApiError extends Error {
   constructor(
@@ -35,7 +35,8 @@ export interface Api {
   edition(id: string): Promise<EditionResponse>;
   stories(f: Filters, cursor?: string | null, limit?: number): Promise<StoriesResponse>;
   story(id: string): Promise<StoryResponse>;
-  tags(p: { feed?: FeedId | null }): Promise<TagsResponse>;
+  /** Tag counts over the stories matching `f` (its sort is ignored). */
+  tags(f: Filters): Promise<TagsResponse>;
   favorites(cursor?: string | null, limit?: number): Promise<FavoritesResponse>;
   setFavorite(storyId: string, favorite: boolean): Promise<FavoriteWriteResponse>;
 }
@@ -75,7 +76,10 @@ export function createApi(fetchImpl: FetchLike = (i, init) => fetch(i, init), ba
     edition: (editionId) => request(`/editions/${id(editionId)}`),
     stories: (f, cursor, limit) => request(`/stories?${storiesQuery(f, cursor, limit).toString()}`),
     story: (storyId) => request(`/stories/${id(storyId)}`),
-    tags: ({ feed }) => request(`/tags${qs({ feed })}`),
+    tags: (f) => {
+      const s = tagsQuery(f).toString();
+      return request(`/tags${s ? `?${s}` : ""}`);
+    },
     favorites: (cursor, limit = 50) => request(`/favorites${qs({ cursor, limit })}`),
     // The browser adds the Origin header the API checks; the API also wants a JSON content type.
     setFavorite: (storyId, favorite) =>

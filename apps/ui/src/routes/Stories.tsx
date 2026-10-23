@@ -1,4 +1,5 @@
-// `/stories`: every story, with sort, feed, tags, date range, favorites-only and search, all in the URL.
+// `/stories`: every story, sorted by publish time, with feed, tags, published-date range, favorites-only and search,
+// all in the URL.
 import { useCallback, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router";
 import { ListFilterIcon } from "lucide-react";
@@ -29,7 +30,8 @@ export function FilterPanel({ filters, set, favoritesToggle = true }: { filters:
       {favoritesToggle && <FavoritesToggle value={filters.favorites} onChange={(favorites) => set({ ...filters, favorites })} />}
       <div>
         <h2 className="kicker mb-3 border-t border-border pt-4 text-muted-foreground">Tags</h2>
-        <TagFilter feed={filters.feed} active={filters.tags} onToggle={(t) => set(toggleTag(filters, t))} />
+        {/* On /favorites the panel has no favorites toggle; its tag counts cover favorites only. */}
+        <TagFilter filters={favoritesToggle ? filters : { ...filters, favorites: true }} onToggle={(t) => set(toggleTag(filters, t))} />
       </div>
     </div>
   );

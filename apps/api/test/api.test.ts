@@ -713,7 +713,7 @@ describe("public reads", () => {
     expect((await c.get("/api/editions/..%2F..%2Fetc")).status).toBe(400);
   });
 
-  test("GET /api/stories: sort, cursor paging covers everything exactly once", async () => {
+  test("GET /api/stories: sorted by publish date-time, cursor paging covers everything exactly once", async () => {
     for (const sort of ["newest", "oldest"] as const) {
       const ids: string[] = [];
       const dates: string[] = [];
@@ -725,7 +725,7 @@ describe("public reads", () => {
         );
         expect(r.status).toBe(200);
         ids.push(...r.body.stories.map((s: any) => s.id));
-        dates.push(...r.body.stories.map((s: any) => s.sort_date));
+        dates.push(...r.body.stories.map((s: any) => s.run_at));
         cursor = r.body.next;
         pages++;
       } while (cursor);
@@ -736,6 +736,10 @@ describe("public reads", () => {
       expect(dates).toEqual(sort === "oldest" ? sorted : sorted.reverse());
       expect(ids.some((id) => id.startsWith("chile-20261021-115606"))).toBe(false); // superseded run
     }
+    // within one edition, stories keep the edition's reading order
+    const cyber = (await c.getJson("/api/stories?feed=cyber&limit=100")).body.stories.map((s: any) => s.slug);
+    const edition = (await c.getJson("/api/editions/cyber-20261021-132150")).body.edition.stories.map((s: any) => s.slug);
+    expect(cyber).toEqual(edition);
     const newest = await c.getJson("/api/stories?limit=1");
     expect(newest.body.stories[0].id).toBe("chile-20261022-080004-afp-senate-session-scheduled");
     const c1 = (await c.getJson("/api/stories?limit=2")).body.next;
@@ -753,12 +757,15 @@ describe("public reads", () => {
     expect(await tag("tag=Region:%20Chile&tag=Topic:Pensions")).toEqual(["afp-senate-session-scheduled", "afp-fondo-e-sanctions"]);
     expect(await tag("tag=cve:CVE-2026-109618")).toEqual(["php2shell-emergency-patches"]);
     expect(await tag("tag=update&feed=chile")).toEqual(["afp-senate-session-scheduled", "afp-fondo-e-sanctions"]);
-    expect(await tag("feed=ai&from=2026-10-15&to=2026-10-16")).toEqual([
-      "replit-anthropic-split",
-      "anthropic-q3-revenue",
-      "white-house-ai-task-force-charter",
-    ]);
+    // dates filter on the published (edition) date, not on when the event happened
+    expect(await tag("feed=ai&from=2026-10-19&to=2026-10-19")).toHaveLength(15);
+    expect(await tag("feed=ai&from=2026-10-15&to=2026-10-18")).toEqual([]);
     expect(await tag("feed=chile&from=2026-10-22")).toEqual(["afp-senate-session-scheduled"]);
+    expect(await tag("from=2026-10-21&to=2026-10-21&tag=kev:yes")).toEqual([
+      "plex2shell-exploited-kev",
+      "siteguard-server-edition-kev",
+      "siemens-software-center-kev",
+    ]);
     for (const bad of ["from=2026-13-01", "from=2026-10-22&to=2026-10-21", "tag=%24where", `${"tag=a&".repeat(11)}`, "sort=random", "limit=0", "limit=abc", "favorites=yes", "feed=chile&feed=ai"]) {
       expect((await c.get(`/api/stories?${bad}`)).status).toBe(400);
     }
@@ -815,6 +822,15 @@ describe("public reads", () => {
     expect(upd).toEqual([{ tag: "update", count: 2 }]);
     const all = (await c.getJson("/api/tags")).body.tags;
     expect(all.length).toBeGreaterThan(50);
+    // counts follow the story filters: what you'd get by adding that tag
+    const withKev = (await c.getJson("/api/tags?tag=kev:yes&prefix=topic")).body.tags;
+    expect(withKev.find((t: any) => t.tag === "topic:exploited")?.count).toBe(3);
+    expect(withKev.some((t: any) => t.tag === "topic:pensions")).toBe(false);
+    const aiOnly = (await c.getJson("/api/tags?from=2026-10-19&to=2026-10-19")).body.tags;
+    expect(aiOnly.some((t: any) => t.tag === "topic:model-release")).toBe(true);
+    expect(aiOnly.some((t: any) => t.tag === "topic:pensions")).toBe(false);
+    expect((await c.getJson("/api/tags?q=filtracion")).body.tags.some((t: any) => t.tag === "topic:pensions")).toBe(true);
+    for (const bad of ["from=2026-13-01", "tag=%24where", "favorites=yes"]) expect((await c.get(`/api/tags?${bad}`)).status).toBe(400);
     expect((await c.get("/api/tags?prefix=evil")).status).toBe(400);
     expect((await c.get("/api/tags?prefix=.*")).status).toBe(400);
   });

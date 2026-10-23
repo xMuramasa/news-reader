@@ -259,11 +259,12 @@ export function publicRoutes(deps: PublicDeps): Route[] {
     return json(200, { edition });
   };
 
-  const listStories = async (_req: Request, _p: string[], url: URL) => {
+  /**
+   * The story filter shared by /api/stories and /api/tags (so tag counts follow the other filters): feed, tags (AND),
+   * published dates (`from`/`to` on the edition date, Santiago), favorites only, text search.
+   */
+  const storyFilter = async (url: URL): Promise<Filter<StoryDoc>> => {
     const feed = feedParam(url);
-    const limit = intParam(url, "limit", DEFAULT_LIMIT, 1, MAX_LIMIT);
-    const sortName = singleParam(url, "sort") || "newest";
-    if (sortName !== "newest" && sortName !== "oldest") throw badRequest("sort must be newest or oldest");
     const rawTags = url.searchParams.getAll("tag").filter((t) => t !== "");
     if (rawTags.length > MAX_TAG_FILTERS) throw badRequest(`at most ${MAX_TAG_FILTERS} tag filters`);
     const tags = rawTags.map((t) => {
@@ -285,12 +286,19 @@ export function publicRoutes(deps: PublicDeps): Route[] {
     const and: Filter<StoryDoc>[] = [{ edition_id: { $nin: vis.hidden } }];
     if (feed) and.push({ feed });
     if (tags.length) and.push({ tags: { $all: tags } });
-    if (from || to) and.push({ sort_date: { ...(from ? { $gte: from } : {}), ...(to ? { $lte: to } : {}) } });
+    if (from || to) and.push({ edition_date: { ...(from ? { $gte: from } : {}), ...(to ? { $lte: to } : {}) } });
     if (favParam === "1") {
       const favIds = (await cols.favorites.find({}, { projection: { _id: 1 } }).toArray()).map((f) => f._id);
       and.push({ _id: { $in: favIds } });
     }
-    const base: Filter<StoryDoc> = q ? { $text: { $search: q }, $and: and } : { $and: and };
+    return q ? { $text: { $search: q }, $and: and } : { $and: and };
+  };
+
+  const listStories = async (_req: Request, _p: string[], url: URL) => {
+    const limit = intParam(url, "limit", DEFAULT_LIMIT, 1, MAX_LIMIT);
+    const sortName = singleParam(url, "sort") || "newest";
+    if (sortName !== "newest" && sortName !== "oldest") throw badRequest("sort must be newest or oldest");
+    const base = await storyFilter(url);
     const spec = STORIES_SORT[sortName];
     const { items, next } = await page<StoryDoc>(
       (f, s, l) => cols.stories.find(f).sort(s).limit(l).toArray(),
@@ -337,11 +345,9 @@ export function publicRoutes(deps: PublicDeps): Route[] {
 
   const PREFIXES = [...AI_TAG_PREFIXES, ...DERIVED_TAG_PREFIXES] as string[];
   const listTags = async (_req: Request, _p: string[], url: URL) => {
-    const feed = feedParam(url);
     const prefix = singleParam(url, "prefix") || undefined;
     if (prefix !== undefined && !PREFIXES.includes(prefix)) throw badRequest(`prefix must be one of: ${PREFIXES.join(", ")}`);
-    const vis = await visibility(cols, feed);
-    const match: Document = { edition_id: { $nin: vis.hidden }, ...(feed ? { feed } : {}) };
+    const match = (await storyFilter(url)) as Document;
     const tagMatch = prefix ? (prefix === "update" ? { tags: "update" } : { tags: { $regex: `^${prefix}:` } }) : {};
     const rows = await cols.stories
       .aggregate<{ _id: string; count: number }>([

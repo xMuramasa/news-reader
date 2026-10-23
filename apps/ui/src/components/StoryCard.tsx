@@ -6,7 +6,7 @@ import type { StoryView } from "@news/schema";
 import { CoverageBar } from "@/components/CoverageBar";
 import { CveChips, SourceChips, TagChips } from "@/components/Chips";
 import { StarButton } from "@/components/StarButton";
-import { formatDay } from "@/lib/dates";
+import { formatDay, formatDayTime, santiagoDate } from "@/lib/dates";
 import { FEEDS, VERIFICATION_NOTES, groupColor, groupTitle, sectionTitle } from "@/lib/feeds";
 import { markRead, useReadState } from "@/lib/read-state";
 import { tagLabel, tagPrefix } from "@/lib/tags";
@@ -46,7 +46,8 @@ function Pill({ tone, children }: { tone: "danger" | "warn" | "info" | "plain"; 
 function Kicker({ s, showFeed, showSection }: { s: StoryView; showFeed: boolean; showSection: boolean }) {
   const isRead = useReadState();
   const unread = !isRead(s.id);
-  const date = s.event_date && s.event_date <= s.edition_date ? s.event_date : s.edition_date;
+  const published = santiagoDate(s.run_at);
+  const event = s.event_date && s.event_date <= s.edition_date && s.event_date !== published ? s.event_date : null;
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
       {unread && (
@@ -57,7 +58,14 @@ function Kicker({ s, showFeed, showSection }: { s: StoryView; showFeed: boolean;
       )}
       {showFeed && <span className="kicker text-feed">{FEEDS[s.feed].label}</span>}
       {showSection && <span className="kicker">{sectionTitle(s.feed, s.section)}</span>}
-      <time dateTime={date}>{formatDay(date)}</time>
+      <time dateTime={s.run_at} title="Published (Santiago time)">
+        {formatDayTime(s.run_at) || formatDay(s.edition_date)}
+      </time>
+      {event && (
+        <span>
+          · event <time dateTime={event}>{formatDay(event)}</time>
+        </span>
+      )}
       {s.is_update && <Pill tone="plain">Update</Pill>}
     </div>
   );

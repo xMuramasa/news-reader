@@ -110,7 +110,10 @@ describe("favorites filters", () => {
     expect(matchesFavorite(fav, { ...EMPTY_FILTERS, tags: ["topic:politics"] })).toBe(true);
     expect(matchesFavorite(fav, { ...EMPTY_FILTERS, tags: ["topic:courts"] })).toBe(false);
     expect(matchesFavorite(fav, { ...EMPTY_FILTERS, q: "filtracion servel" })).toBe(true);
-    expect(matchesFavorite(fav, { ...EMPTY_FILTERS, from: "2026-10-21" })).toBe(false);
+    // dates are the published (edition) date, 21 Oct here; the event was on the 20th
+    expect(matchesFavorite(fav, { ...EMPTY_FILTERS, from: "2026-10-22" })).toBe(false);
+    expect(matchesFavorite(fav, { ...EMPTY_FILTERS, from: "2026-10-21", to: "2026-10-21" })).toBe(true);
+    expect(matchesFavorite(fav, { ...EMPTY_FILTERS, to: "2026-10-20" })).toBe(false);
   });
 
   test("a snapshot matches on feed and headline only", () => {

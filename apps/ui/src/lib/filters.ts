@@ -2,7 +2,7 @@
 // parse -> serialize is canonical: defaults are omitted and invalid values dropped, in a fixed parameter order.
 import { isFeedId, type FeedId } from "@news/schema/feeds";
 import { normalizeFilterTag } from "@news/schema/tags";
-import { isValidDate } from "./dates.ts";
+import { addDays, formatDate, isValidDate } from "./dates.ts";
 
 export const MAX_TAGS = 10;
 export const MAX_QUERY = 200;
@@ -56,6 +56,52 @@ export function filtersToSearch(f: Filters): URLSearchParams {
   if (f.favorites) sp.set("favorites", "1");
   if (f.sort !== "newest") sp.set("sort", f.sort);
   return sp;
+}
+
+/** Query string for GET /api/tags: the same filters as the list, so tag counts follow them. */
+export function tagsQuery(f: Filters): URLSearchParams {
+  const sp = filtersToSearch(f);
+  sp.delete("sort");
+  return sp;
+}
+
+/** Quick ranges for the published-date filter, relative to today in Santiago. */
+export type DatePreset = "today" | "yesterday" | "7d" | "30d";
+export const DATE_PRESETS: { id: DatePreset; label: string }[] = [
+  { id: "today", label: "Today" },
+  { id: "yesterday", label: "Yesterday" },
+  { id: "7d", label: "Last 7 days" },
+  { id: "30d", label: "Last 30 days" },
+];
+
+export function presetRange(p: DatePreset, today: string): { from: string; to: string | null } {
+  switch (p) {
+    case "today":
+      return { from: today, to: today };
+    case "yesterday":
+      return { from: addDays(today, -1), to: addDays(today, -1) };
+    case "7d":
+      return { from: addDays(today, -6), to: null };
+    case "30d":
+      return { from: addDays(today, -29), to: null };
+  }
+}
+
+export function activePreset(f: { from: string | null; to: string | null }, today: string): DatePreset | null {
+  for (const p of DATE_PRESETS) {
+    const r = presetRange(p.id, today);
+    if (f.from === r.from && (f.to === r.to || (r.to === null && f.to === today))) return p.id;
+  }
+  return null;
+}
+
+/** "Last 7 days", "21 Oct 2026", "21 Oct 2026 – 23 Oct 2026", "since 1 Oct 2026", "until 5 Oct 2026". */
+export function dateRangeLabel(from: string | null, to: string | null, today: string): string {
+  const preset = activePreset({ from, to }, today);
+  if (preset) return DATE_PRESETS.find((p) => p.id === preset)!.label;
+  if (from && to) return from === to ? formatDate(from) : `${formatDate(from)} – ${formatDate(to)}`;
+  if (from) return `since ${formatDate(from)}`;
+  return to ? `until ${formatDate(to)}` : "";
 }
 
 /** Query string for GET /api/stories. */

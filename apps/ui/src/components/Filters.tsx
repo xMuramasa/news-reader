@@ -1,12 +1,13 @@
 // Filter controls shared by /stories and /favorites. State lives in the URL (lib/filters); these only render it.
-import { useEffect, useId, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { SearchIcon, XIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useApi } from "@/lib/api";
 import { FEEDS, FEED_IDS, type FeedId } from "@/lib/feeds";
-import { MAX_QUERY, MAX_TAGS, toggleTag, type Filters } from "@/lib/filters";
-import { groupTags, tagLabel, tagTitle } from "@/lib/tags";
+import { santiagoToday } from "@/lib/dates";
+import { DATE_PRESETS, MAX_QUERY, MAX_TAGS, activePreset, dateRangeLabel, presetRange, toggleTag, type Filters } from "@/lib/filters";
+import { groupTags, tagLabel, tagTitle, type TagGroup } from "@/lib/tags";
 import { cn } from "@/lib/utils";
 
 export const SEARCH_DEBOUNCE_MS = 300;
@@ -140,27 +141,66 @@ export function SortSelect({ value, onChange }: { value: Filters["sort"]; onChan
         onChange={(e) => onChange(e.target.value === "oldest" ? "oldest" : "newest")}
         className="h-10 rounded-md border border-border-strong/60 bg-card px-2 text-sm text-foreground"
       >
-        <option value="newest">Newest first</option>
-        <option value="oldest">Oldest first</option>
+        <option value="newest">Newest published</option>
+        <option value="oldest">Oldest published</option>
       </select>
     </label>
   );
 }
 
-export function DateRange({ from, to, onChange }: { from: string | null; to: string | null; onChange: (from: string | null, to: string | null) => void }) {
+export function DateRange({
+  from,
+  to,
+  onChange,
+  today = santiagoToday(),
+}: {
+  from: string | null;
+  to: string | null;
+  onChange: (from: string | null, to: string | null) => void;
+  today?: string;
+}) {
+  const active = activePreset({ from, to }, today);
   return (
     <fieldset>
-      <legend className="kicker mb-2 text-muted-foreground">Date</legend>
+      <legend className="kicker mb-2 text-muted-foreground">Published</legend>
+      <div className="mb-2.5 flex flex-wrap gap-1.5" role="group" aria-label="Quick date ranges">
+        {DATE_PRESETS.map((p) => {
+          const on = active === p.id;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              aria-pressed={on}
+              onClick={() => {
+                if (on) return onChange(null, null);
+                const r = presetRange(p.id, today);
+                onChange(r.from, r.to);
+              }}
+              className={cn(
+                "inline-flex min-h-8 items-center rounded-full border px-2.5 text-[0.8125rem]",
+                on ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:bg-muted",
+              )}
+            >
+              {p.label}
+            </button>
+          );
+        })}
+      </div>
       <div className="grid grid-cols-2 gap-2">
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           From
-          <Input type="date" value={from ?? ""} max={to ?? undefined} onChange={(e) => onChange(e.target.value || null, to)} />
+          <Input type="date" value={from ?? ""} max={to ?? today} onChange={(e) => onChange(e.target.value || null, to)} />
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           To
-          <Input type="date" value={to ?? ""} min={from ?? undefined} onChange={(e) => onChange(from, e.target.value || null)} />
+          <Input type="date" value={to ?? ""} min={from ?? undefined} max={today} onChange={(e) => onChange(from, e.target.value || null)} />
         </label>
       </div>
+      {(from || to) && (
+        <button type="button" className="mt-1.5 text-xs underline underline-offset-2" onClick={() => onChange(null, null)}>
+          Any date
+        </button>
+      )}
     </fieldset>
   );
 }
@@ -188,7 +228,8 @@ function TagGroupChips({
   onToggle: (t: string) => void;
 }) {
   const [all, setAll] = useState(false);
-  const visible = all ? tags : tags.slice(0, GROUP_PREVIEW);
+  // Selected tags always show, even past the preview.
+  const visible = all ? tags : tags.filter((t, i) => i < GROUP_PREVIEW || active.includes(t.tag));
   const atMax = active.length >= MAX_TAGS;
   return (
     <div>
@@ -227,9 +268,46 @@ function TagGroupChips({
   );
 }
 
-export function TagFilter({ feed, active, onToggle }: { feed: FeedId | null; active: readonly string[]; onToggle: (t: string) => void }) {
+/** Tags matching the search box ("pen" finds topic:pensions; accents ignored), selected tags always kept. */
+export function filterTagGroups(groups: TagGroup[], search: string, active: readonly string[]): TagGroup[] {
+  const fold = (s: string) => s.normalize("NFKD").replace(/\p{M}+/gu, "").toLowerCase();
+  const words = fold(search).split(/\s+/).filter(Boolean);
+  if (!words.length) return groups;
+  return groups
+    .map((g) => ({
+      ...g,
+      tags: g.tags.filter((t) => {
+        if (active.includes(t.tag)) return true;
+        const hay = fold(`${t.tag} ${tagLabel(t.tag)} ${tagTitle(t.tag)} ${g.label}`);
+        return words.every((w) => hay.includes(w));
+      }),
+    }))
+    .filter((g) => g.tags.length);
+}
+
+/**
+ * Tag chips with counts for the stories matching the other filters (feed, dates, search, favorites, selected tags),
+ * so a count is what you get when you add that tag.
+ */
+export function TagFilter({ filters, onToggle }: { filters: Filters; onToggle: (t: string) => void }) {
   const api = useApi();
-  const q = useQuery({ queryKey: ["tags", feed], queryFn: () => api.tags({ feed }), staleTime: 5 * 60_000 });
+  const [search, setSearch] = useState("");
+  const scope = useMemo(() => ({ ...filters, sort: "newest" as const }), [filters]);
+  const q = useQuery({
+    queryKey: ["tags", scope],
+    queryFn: () => api.tags(scope),
+    staleTime: 60_000,
+    placeholderData: keepPreviousData,
+  });
+  const active = filters.tags;
+  const groups = useMemo(() => {
+    if (!q.data) return [];
+    // Selected tags stay listed (count 0 means nothing matches it any more; it can still be removed).
+    const counts = [...q.data.tags];
+    for (const t of active) if (!counts.some((c) => c.tag === t)) counts.push({ tag: t, count: 0 });
+    return filterTagGroups(groupTags(counts), search, active);
+  }, [q.data, search, active]);
+
   if (q.isPending) return <p className="text-sm text-muted-foreground">Loading tags…</p>;
   if (q.isError)
     return (
@@ -240,13 +318,25 @@ export function TagFilter({ feed, active, onToggle }: { feed: FeedId | null; act
         </button>
       </p>
     );
-  const groups = groupTags(q.data.tags);
-  if (!groups.length) return <p className="text-sm text-muted-foreground">No tags yet.</p>;
   return (
-    <div className="flex flex-col gap-4">
-      {groups.map((g) => (
-        <TagGroupChips key={g.prefix} label={g.label} tags={g.tags} active={active} onToggle={onToggle} />
-      ))}
+    <div className={cn("flex flex-col gap-4 transition-opacity", q.isPlaceholderData && "opacity-60")} aria-busy={q.isFetching}>
+      <div className="relative">
+        <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden />
+        <Input
+          type="search"
+          aria-label="Find a tag"
+          placeholder="Find a tag…"
+          value={search}
+          maxLength={60}
+          onChange={(e) => setSearch(e.target.value)}
+          className="h-9 pl-8 text-sm"
+        />
+      </div>
+      {groups.length ? (
+        groups.map((g) => <TagGroupChips key={`${g.prefix}:${search}`} label={g.label} tags={g.tags} active={active} onToggle={onToggle} />)
+      ) : (
+        <p className="text-sm text-muted-foreground">{search ? `No tags match “${search}”.` : "No tags for these stories."}</p>
+      )}
     </div>
   );
 }
@@ -259,7 +349,7 @@ export function ActiveFilters({ filters, onChange, onClear }: { filters: Filters
   if (filters.from || filters.to)
     items.push({
       key: "date",
-      label: `${filters.from ?? "…"} – ${filters.to ?? "…"}`,
+      label: dateRangeLabel(filters.from, filters.to, santiagoToday()),
       remove: () => onChange({ ...filters, from: null, to: null }),
     });
   if (filters.favorites) items.push({ key: "fav", label: "Favorites only", remove: () => onChange({ ...filters, favorites: false }) });

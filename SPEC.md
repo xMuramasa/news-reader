@@ -242,8 +242,11 @@ Public: port 8080 on the `proxy` network, reached through Caddy at `/api`. GET o
 - `GET /api/editions?feed=&before=&limit=`: newest first, cursor-paged.
 - `GET /api/editions/:id`: edition with stories in order, prev/next ids and same-day runs.
 - `GET /api/stories?feed=&tag=&q=&from=&to=&sort=newest|oldest&favorites=1&cursor=&limit=`: `tag` repeatable (AND).
+  Sorted by publish date-time (the edition's `run_at`), then reading order within the edition. `from`/`to` filter
+  on the published date (`edition_date`, Santiago), inclusive.
 - `GET /api/stories/:id`: the story plus earlier stories in its thread (and later ones, for the timeline).
-- `GET /api/tags?feed=&prefix=`: tag counts for the filter chips.
+- `GET /api/tags?prefix=` plus the same filters as `/api/stories` (feed, tag, q, from, to, favorites): tag counts over
+  the matching stories, so each chip's count is what adding that tag would give.
 - `GET /api/favorites`, `PUT /api/favorites/:storyId`, `DELETE /api/favorites/:storyId` (both idempotent).
 - `GET /healthz`: app and Mongo ping.
 

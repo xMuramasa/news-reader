@@ -15,6 +15,8 @@ describe("<StoryCard> card", () => {
     expect(card.querySelector(".feed-strip")).toBeTruthy();
     const link = within(card).getByRole("link", { name: s.headline });
     expect(link.getAttribute("href")).toBe(`/s/${s.id}`);
+    // published date-time (Santiago), plus the event day when it differs
+    expect(within(card).getByText("Wed 21 Oct, 13:21").getAttribute("datetime")).toBe(s.run_at);
     expect(within(card).getByText("Tue 20 Oct")).toBeTruthy();
     expect(within(card).getByText(s.summary)).toBeTruthy();
     const tags = within(card).getByRole("list", { name: "Tags" });
