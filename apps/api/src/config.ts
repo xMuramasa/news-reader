@@ -8,6 +8,7 @@ import {
   type OutletIndex,
   type StackMatcher,
 } from "@news/schema";
+import { DEFAULT_JEV_MODEL, DEFAULT_JEV_THRESHOLD, DEFAULT_JEV_URL } from "./jev.ts";
 
 export interface Config {
   mongoUrl: string;
@@ -21,6 +22,15 @@ export interface Config {
   kevUrl: string;
   kevRefreshHours: number;
   configDir: string;
+  /** Jev topic tagging; null when TYPESAFE_AI_API_KEY is unset (the briefing model's topics are kept). */
+  jev: JevConfig | null;
+}
+
+export interface JevConfig {
+  apiKey: string;
+  url: string;
+  model: string;
+  threshold: number;
 }
 
 export const DEFAULT_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json";
@@ -95,6 +105,23 @@ export function loadConfig(env: Env): Config {
 
   const configDir = resolve(get("CONFIG_DIR") ?? DEFAULT_CONFIG_DIR);
 
+  let jev: JevConfig | null = null;
+  const jevKey = get("TYPESAFE_AI_API_KEY");
+  if (jevKey !== undefined) {
+    if (/\s/.test(jevKey) || jevKey.length < 16) problems.push("TYPESAFE_AI_API_KEY must be at least 16 characters without whitespace");
+    const url = get("JEV_URL") ?? DEFAULT_JEV_URL;
+    try {
+      if (new URL(url).protocol !== "https:" && !/^http:\/\/(127\.0\.0\.1|localhost)[:/]/.test(url)) throw new Error();
+    } catch {
+      problems.push("JEV_URL must be an https URL");
+    }
+    const model = get("JEV_MODEL") ?? DEFAULT_JEV_MODEL;
+    if (!/^[A-Za-z0-9._-]{1,80}$/.test(model)) problems.push("JEV_MODEL must be a model name like jev-latest");
+    const threshold = Number(get("JEV_THRESHOLD") ?? DEFAULT_JEV_THRESHOLD);
+    if (!Number.isFinite(threshold) || threshold <= 0 || threshold >= 1) problems.push("JEV_THRESHOLD must be a number between 0 and 1");
+    jev = { apiKey: jevKey, url, model, threshold };
+  }
+
   if (problems.length) throw new ConfigError(problems);
   return {
     mongoUrl,
@@ -108,6 +135,7 @@ export function loadConfig(env: Env): Config {
     kevUrl,
     kevRefreshHours,
     configDir,
+    jev,
   };
 }
 

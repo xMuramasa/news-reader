@@ -1,5 +1,6 @@
 import { MongoServerError, type Collection, type Db, type IndexDescription } from "mongodb";
 import { editionsValidator, storiesValidator, type EnrichedSource, type FeedId, type Markets, type Story } from "@news/schema";
+import type { JevStored } from "./jev.ts";
 
 export interface EditionDoc {
   _id: string;
@@ -33,6 +34,8 @@ export type StoryDoc = Omit<Story, "sources"> & {
   position: number;
   sources: EnrichedSource[];
   cves: string[];
+  /** Jev's topic probabilities (absent on stories stored before Jev, null when Jev was unavailable). */
+  jev?: JevStored | null;
 };
 
 export interface FavoriteDoc {

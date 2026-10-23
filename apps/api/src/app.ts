@@ -3,6 +3,7 @@ import { LIMITS } from "@news/schema";
 import { collections, type Collections } from "./db.ts";
 import { router, type Route } from "./http.ts";
 import { ingestHandler, type IngestStep } from "./ingest.ts";
+import type { JevClassifier } from "./jev.ts";
 import type { KevService } from "./kev.ts";
 import type { Logger } from "./log.ts";
 import { healthHandler, publicRoutes } from "./public.ts";
@@ -15,6 +16,10 @@ export interface AppOptions {
   reference: ReferenceData;
   kev: KevService;
   log: Logger;
+  /** Topic classifier for ingest; absent keeps the briefing model's topics. */
+  jev?: JevClassifier | null;
+  /** Budget for classifying one edition (default 6 s; the publisher waits 10 s for the whole POST). */
+  jevDeadlineMs?: number;
   now?: () => Date;
   /** Test hook: called after each ingest write step (throw to simulate a crash). */
   afterIngestStep?: (step: IngestStep, editionId: string) => void | Promise<void>;
@@ -45,6 +50,9 @@ export function createApp(o: AppOptions): App {
             stack: o.reference.stack,
             isKev: (c) => o.kev.has(c),
             now,
+            log: o.log,
+            jev: o.jev ?? null,
+            jevDeadlineMs: o.jevDeadlineMs ?? 6_000,
             ...(o.afterIngestStep ? { afterStep: o.afterIngestStep } : {}),
           },
           o.ingestToken,

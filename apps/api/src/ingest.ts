@@ -6,6 +6,9 @@
 //   3. delete stories of this edition that are not in the new version
 //   4. mark the edition "ready"
 // Every step is idempotent. A failure anywhere leaves the edition hidden; re-posting runs all four steps again.
+//
+// With Jev configured, story topics are classified before the writes (see jev.ts). Jev being down never fails an
+// ingest: those stories keep the briefing model's topics.
 import { createHash, timingSafeEqual } from "node:crypto";
 import {
   FEEDS,
@@ -14,12 +17,15 @@ import {
   editionIdFor,
   storyIdFor,
   validateEdition,
+  type FeedId,
   type OutletIndex,
   type StackMatcher,
 } from "@news/schema";
 import { MongoServerError } from "mongodb";
 import type { Collections, EditionDoc, StoryDoc } from "./db.ts";
 import { HttpError, isJsonContentType, json, readBody } from "./http.ts";
+import { tagStories, type JevClassifier, type JevStored } from "./jev.ts";
+import type { Logger } from "./log.ts";
 
 export type IngestStep = "edition" | "stories" | "prune" | "ready";
 
@@ -29,6 +35,11 @@ export interface IngestDeps {
   stack: StackMatcher;
   isKev: (cve: string) => boolean;
   now: () => Date;
+  /** Topic classifier; null or absent keeps the briefing model's topics. */
+  jev?: JevClassifier | null;
+  /** Time budget for classifying one edition, so the publisher's POST doesn't time out. */
+  jevDeadlineMs?: number;
+  log?: Logger;
   /** Test hook, called after each write step. */
   afterStep?: (step: IngestStep, editionId: string) => void | Promise<void>;
 }
@@ -116,6 +127,7 @@ export async function ingestEdition(deps: IngestDeps, raw: unknown, bodyBytes?: 
   return withLock(editionId, async () => {
     const { cols } = deps;
     const existing = await cols.editions.findOne({ _id: editionId }, { projection: { state: 1 } });
+    if (deps.jev) await classifyTopics(deps, deps.jev, editionId, e.feed, e.stories, stories);
     try {
       await cols.editions.replaceOne({ _id: editionId }, editionDoc, { upsert: true });
       await deps.afterStep?.("edition", editionId);
@@ -142,6 +154,50 @@ export async function ingestEdition(deps: IngestDeps, raw: unknown, bodyBytes?: 
       warnings: v.warnings,
     } satisfies IngestResult;
   });
+}
+
+/**
+ * Replace each story's `topic:` tags with Jev's (in place). Results already stored for this edition are reused when
+ * the story text is unchanged, so re-posting a run costs nothing.
+ */
+async function classifyTopics(
+  deps: IngestDeps,
+  jev: JevClassifier,
+  editionId: string,
+  feed: FeedId,
+  raw: { tags: string[] }[],
+  stories: StoryDoc[],
+): Promise<void> {
+  const cached = new Map<string, JevStored>();
+  const prior = await deps.cols.stories
+    .find({ edition_id: editionId, jev: { $type: "object" } }, { projection: { jev: 1 } })
+    .toArray();
+  for (const p of prior) if (p.jev) cached.set(p.jev.input_hash, p.jev);
+
+  // Classify on the briefing model's tags only; the derived tags (outlet, cve, stack…) are added back afterwards.
+  const input = stories.map((s, i) => ({ headline: s.headline, summary: s.summary, details: s.details, tags: raw[i]!.tags }));
+  const r = await tagStories(jev, feed, input, {
+    cached,
+    now: deps.now,
+    ...(deps.jevDeadlineMs === undefined ? {} : { deadlineMs: deps.jevDeadlineMs }),
+  });
+  stories.forEach((s, i) => {
+    const o = r.outcomes[i]!;
+    if (!o.jev) return;
+    const derived = s.tags.filter((t) => !raw[i]!.tags.includes(t));
+    s.tags = [...new Set([...o.tags, ...derived])];
+    s.jev = o.jev;
+  });
+  const fields = {
+    edition_id: editionId,
+    classified: r.classified,
+    reused: r.reused,
+    failed: r.failed,
+    input_tokens: r.inputTokens,
+    replaced: stories.filter((s) => s.jev?.applied).length,
+  };
+  if (r.failed) deps.log?.warn("jev: some stories kept the briefing topics", { ...fields, errors: r.errors });
+  else deps.log?.info("jev: tagged", fields);
 }
 
 function sha256(s: string): Buffer {

@@ -3,6 +3,7 @@ import { MongoClient } from "mongodb";
 import { createApp, startServers } from "./app.ts";
 import { ConfigError, loadConfig, loadReferenceData } from "./config.ts";
 import { ensureSchema, collections } from "./db.ts";
+import { typesafeClassifier } from "./jev.ts";
 import { KevService, defaultKevFetcher } from "./kev.ts";
 import { jsonLogger as log } from "./log.ts";
 
@@ -38,11 +39,15 @@ async function main(): Promise<void> {
     reference,
     kev,
     log,
+    jev: config.jev
+      ? typesafeClassifier({ apiKey: config.jev.apiKey, url: config.jev.url, model: config.jev.model, threshold: config.jev.threshold })
+      : null,
   });
   const servers = startServers(app, config);
   log.info("news-api listening", {
     ingest: `${config.ingestHost}:${servers.ingest.port}`,
     public: `${config.publicHost}:${servers.public.port}`,
+    jev: config.jev ? { model: config.jev.model, threshold: config.jev.threshold } : "off",
   });
 
   const shutdown = async (signal: string) => {

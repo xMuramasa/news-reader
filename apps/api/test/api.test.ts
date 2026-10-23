@@ -9,7 +9,9 @@ import { createApp, startServers, type Servers } from "../src/app.ts";
 import { DEFAULT_CONFIG_DIR, loadReferenceData } from "../src/config.ts";
 import { collections, ensureSchema } from "../src/db.ts";
 import type { IngestStep } from "../src/ingest.ts";
+import { typesafeClassifier, type JevClassifier } from "../src/jev.ts";
 import { KevService } from "../src/kev.ts";
+import { retag } from "../src/retag.ts";
 import { memoryLogger } from "../src/log.ts";
 import { startMongo, type TestMongo } from "./mongo.ts";
 
@@ -49,7 +51,7 @@ interface Ctx {
   app: ReturnType<typeof createApp>;
 }
 
-async function setup(): Promise<Ctx> {
+async function setup(opts: { jev?: JevClassifier | null; jevDeadlineMs?: number } = {}): Promise<Ctx> {
   const db = client.db(`t_${randomBytes(4).toString("hex")}`);
   await ensureSchema(db);
   const log = memoryLogger();
@@ -73,6 +75,8 @@ async function setup(): Promise<Ctx> {
     reference,
     kev,
     log,
+    jev: opts.jev ?? null,
+    ...(opts.jevDeadlineMs === undefined ? {} : { jevDeadlineMs: opts.jevDeadlineMs }),
     afterIngestStep: (step) => {
       if (failAfter.step === step) throw new Error(`simulated crash after ${step}`);
     },
@@ -382,6 +386,146 @@ describe("ingest", () => {
       expect((await fetch(`http://127.0.0.1:${servers.public.port}/healthz`)).status).toBe(200);
     } finally {
       await servers.stop();
+    }
+  });
+});
+
+describe("Jev topic tagging at ingest", () => {
+  const KEY = "tsk_" + "k".repeat(40);
+  // A fake System One: every story is "about" migration (0.97) and congress (0.9); politics stays under the threshold.
+  function fakeJev(mode: { fail?: boolean; hang?: boolean }) {
+    const requests: any[] = [];
+    const server = Bun.serve({
+      hostname: "127.0.0.1",
+      port: 0,
+      async fetch(req) {
+        const body: any = await req.json();
+        requests.push({ auth: req.headers.get("authorization"), body });
+        if (mode.hang) await Bun.sleep(2_000);
+        if (mode.fail) return new Response("upstream down", { status: 503 });
+        const answers: Record<string, unknown> = {};
+        for (const q of Object.keys(body.questions)) {
+          const p = q === "topic_migration" ? 0.97 : q === "topic_congress" ? 0.9 : q === "topic_politics" ? 0.84 : 0.02;
+          answers[q] = { type: "noul", noul: p };
+        }
+        return Response.json({ id: "x", model: "jev-1.14.0", answers, usage: { input_tokens: 1000 } });
+      },
+    });
+    const classifier = typesafeClassifier({
+      apiKey: KEY,
+      url: `http://127.0.0.1:${server.port}/v1/systemone`,
+      retryDelayMs: 1,
+      timeoutMs: 500,
+    });
+    return { server, requests, classifier };
+  }
+
+  test("replaces the model's topics, stores probabilities, keeps other tags; a re-POST reuses the results", async () => {
+    const jev = fakeJev({});
+    try {
+      const c = await setup({ jev: jev.classifier });
+      const edition = fx("chile.valid.json");
+      expect((await c.post(edition)).status).toBe(201);
+      const n = edition.stories.length;
+      expect(jev.requests).toHaveLength(n);
+      expect(jev.requests[0].auth).toBe(`Bearer ${KEY}`);
+      expect(jev.requests[0].body.model).toBe("jev-latest");
+
+      const doc = await c.db.collection("stories").findOne({ slug: "migrant-expulsion-law-clears-congress" });
+      expect(doc!.tags.filter((t: string) => t.startsWith("topic:"))).toEqual(["topic:migration", "topic:congress"]);
+      expect(doc!.tags).toContain("region:chile");
+      expect(doc!.tags).toContain("org:pdi");
+      expect(doc!.tags.some((t: string) => t.startsWith("outlet:"))).toBe(true);
+      expect(doc!.jev).toMatchObject({ model: "jev-1.14.0", threshold: 0.85, applied: true, ai_topics: ["migration", "congress"] });
+      expect(doc!.jev.probabilities.politics).toBe(0.84);
+      const pensions = await c.db.collection("stories").findOne({ slug: "afp-fondo-e-sanctions" });
+      expect(pensions!.tags.filter((t: string) => t.startsWith("topic:"))).toEqual(["topic:migration", "topic:congress"]);
+      expect(pensions!.jev.ai_topics).toEqual(["pensions", "markets"]);
+
+      // public API: tags updated, probabilities not exposed
+      const pub = await c.getJson(`/api/stories/${doc!._id}`);
+      expect(pub.body.story.tags).toContain("topic:migration");
+      expect(pub.body.story.jev).toBeUndefined();
+      expect(c.log.lines.some((l: any) => l.msg === "jev: tagged" && l.fields.classified === n)).toBe(true);
+
+      // same run again: nothing re-classified
+      expect((await c.post(edition)).status).toBe(200);
+      expect(jev.requests).toHaveLength(n);
+      expect(c.log.lines.some((l: any) => l.msg === "jev: tagged" && l.fields.reused === n && l.fields.classified === 0)).toBe(true);
+      expect(JSON.stringify(c.log.lines)).not.toContain(KEY);
+    } finally {
+      await jev.server.stop(true);
+    }
+  });
+
+  test("Jev down: ingest still succeeds with the model's topics and logs a warning", async () => {
+    const jev = fakeJev({ fail: true });
+    try {
+      const c = await setup({ jev: jev.classifier });
+      expect((await c.post(fx("chile.valid.json"))).status).toBe(201);
+      const doc = await c.db.collection("stories").findOne({ slug: "afp-fondo-e-sanctions" });
+      expect(doc!.tags.filter((t: string) => t.startsWith("topic:"))).toEqual(["topic:pensions", "topic:markets"]);
+      expect(doc!.jev).toBeUndefined();
+      const warn = c.log.lines.find((l: any) => l.msg === "jev: some stories kept the briefing topics") as any;
+      expect(warn.fields.failed).toBe(fx("chile.valid.json").stories.length);
+      expect(warn.fields.errors[0]).toContain("HTTP 503");
+      expect(JSON.stringify(c.log.lines)).not.toContain(KEY);
+    } finally {
+      await jev.server.stop(true);
+    }
+  });
+
+  test("retag: classifies stories stored before Jev, then re-applies a new threshold without calling Jev", async () => {
+    const jev = fakeJev({});
+    try {
+      const c = await setup();
+      expect((await c.post(fx("chile.valid.json"))).status).toBe(201);
+      const n = fx("chile.valid.json").stories.length;
+      const cols = collections(c.db);
+
+      const first = await retag(cols, jev.classifier, { mode: "missing" });
+      // the migrant-expulsion story already had exactly migration + congress, so its tags don't change
+      expect(first).toMatchObject({ stories: n, classified: n, failed: 0, changed: n - 1 });
+      expect(jev.requests).toHaveLength(n);
+      let doc = await cols.stories.findOne({ slug: "afp-fondo-e-sanctions" });
+      expect(doc!.tags.filter((t) => t.startsWith("topic:"))).toEqual(["topic:migration", "topic:congress"]);
+      expect(doc!.tags).toContain("region:chile");
+      expect(doc!.tags.some((t) => t.startsWith("outlet:"))).toBe(true);
+      expect(doc!.jev!.ai_topics).toEqual(["pensions", "markets"]);
+
+      // nothing left to classify
+      expect(await retag(cols, jev.classifier, { mode: "missing" })).toMatchObject({ stories: 0, classified: 0 });
+
+      // stricter threshold: congress (0.9) drops out, migration (0.97) stays; no new requests
+      const strict = { ...jev.classifier, threshold: 0.95 };
+      expect(await retag(cols, strict, { mode: "reapply" })).toMatchObject({ reapplied: n, changed: n });
+      doc = await cols.stories.findOne({ slug: "afp-fondo-e-sanctions" });
+      expect(doc!.tags.filter((t) => t.startsWith("topic:"))).toEqual(["topic:migration"]);
+      expect(doc!.jev!.threshold).toBe(0.95);
+
+      // nothing clears 0.99: the briefing model's own topics come back
+      await retag(cols, { ...jev.classifier, threshold: 0.99 }, { mode: "reapply" });
+      doc = await cols.stories.findOne({ slug: "afp-fondo-e-sanctions" });
+      expect(doc!.tags.filter((t) => t.startsWith("topic:"))).toEqual(["topic:pensions", "topic:markets"]);
+      expect(doc!.jev!.applied).toBe(false);
+      expect(jev.requests).toHaveLength(n);
+    } finally {
+      await jev.server.stop(true);
+    }
+  });
+
+  test("a slow Jev can't hold an ingest past the deadline", async () => {
+    const jev = fakeJev({ hang: true });
+    try {
+      const c = await setup({ jev: jev.classifier, jevDeadlineMs: 300 });
+      const t0 = Date.now();
+      expect((await c.post(fx("cyber.valid.json"))).status).toBe(201);
+      expect(Date.now() - t0).toBeLessThan(1_500);
+      const doc = await c.db.collection("stories").findOne({ slug: "plex2shell-exploited-kev" });
+      expect(doc!.tags).toContain("kev:yes");
+      expect(doc!.jev).toBeUndefined();
+    } finally {
+      await jev.server.stop(true);
     }
   });
 });

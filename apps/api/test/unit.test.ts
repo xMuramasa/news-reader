@@ -36,7 +36,31 @@ describe("config", () => {
       kevUrl: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
       kevRefreshHours: 24,
       configDir: DEFAULT_CONFIG_DIR,
+      jev: null,
     });
+  });
+
+  test("Jev is off without a key, on with defaults when TYPESAFE_AI_API_KEY is set", () => {
+    const key = "tsk_" + "a".repeat(40);
+    expect(loadConfig(base).jev).toBeNull();
+    expect(loadConfig({ ...base, TYPESAFE_AI_API_KEY: key }).jev).toEqual({
+      apiKey: key,
+      url: "https://api.typesafe.ai/v1/systemone",
+      model: "jev-latest",
+      threshold: 0.85,
+    });
+    expect(loadConfig({ ...base, TYPESAFE_AI_API_KEY: key, JEV_THRESHOLD: "0.9", JEV_MODEL: "jev-preview" }).jev).toMatchObject({
+      model: "jev-preview",
+      threshold: 0.9,
+    });
+    const p = problems({ ...base, TYPESAFE_AI_API_KEY: "short key", JEV_URL: "http://evil.example/x", JEV_THRESHOLD: "1.5", JEV_MODEL: "a b" });
+    expect(p).toEqual([
+      "TYPESAFE_AI_API_KEY must be at least 16 characters without whitespace",
+      "JEV_URL must be an https URL",
+      "JEV_MODEL must be a model name like jev-latest",
+      "JEV_THRESHOLD must be a number between 0 and 1",
+    ]);
+    expect(p.join(" ")).not.toContain("short key");
   });
 
   test("fails fast with every problem listed and without echoing the token", () => {

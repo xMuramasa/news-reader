@@ -181,6 +181,22 @@ Added by the API, not the AI:
 
 Unknown values for the fixed lists are dropped and returned as warnings; the edition still saves.
 
+### Topic tagging with Jev
+
+When `TYPESAFE_AI_API_KEY` is set, news-api asks Jev (TypeSafe's System One classifier, `jev-latest`) about each
+story at ingest: one yes/no probability per topic of the feed (headline, summary and details only). See
+`apps/api/src/jev.ts`.
+
+- Topics at or above `JEV_THRESHOLD` (0.85) replace the AI's `topic:` tags, highest first, at most 4. If none clears
+  the threshold, the AI's topics stay. `region:`, `status:`, `org:` and the API's own tags are not touched.
+- Never blocks an ingest: if Jev fails or times out (6 s per edition, one retry per story), that story keeps the AI's
+  topics and a warning is logged.
+- Stored on the story as `jev` (not served by the public API): model, threshold, all probabilities, whether it was
+  applied, the AI's own topics, an input hash and the time. A re-POST of the same run reuses unchanged results.
+- `docker exec news-api bun apps/api/src/retag.ts` classifies stories stored without Jev; `--reapply` re-applies a
+  new threshold from the stored probabilities with no API calls; `--force` classifies everything again.
+- Cost: about 1,000 input tokens per story at $0.042 per million (output is free), about $0.06 a month.
+
 ## MongoDB
 
 - Image `mongo:9.0.4`, `--wiredTigerCacheSizeGB 0.25`, auth on: a root user plus `news_app` with readWrite on db
