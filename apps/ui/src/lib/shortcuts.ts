@@ -7,7 +7,7 @@ export const SHORTCUTS: { keys: string; text: string }[] = [
   { keys: "j", text: "Next story" },
   { keys: "k", text: "Previous story" },
   { keys: "s", text: "Star or unstar the focused story" },
-  { keys: "/", text: "Search stories" },
+  { keys: "/", text: "Go to the search field" },
   { keys: "?", text: "Show this help" },
   { keys: "Esc", text: "Close a dialog or panel" },
 ];

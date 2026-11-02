@@ -9,6 +9,7 @@ import { useTitle } from "@/lib/title";
 import { Edition } from "@/routes/Edition";
 import { FeedArchive } from "@/routes/FeedArchive";
 import { Favorites } from "@/routes/Favorites";
+import { Search } from "@/routes/Search";
 import { Stories } from "@/routes/Stories";
 import { Story } from "@/routes/Story";
 import { Today } from "@/routes/Today";
@@ -48,6 +49,7 @@ export const routes: RouteObject[] = [
           { path: "e/:editionId", element: <Edition /> },
           { path: "s/:storyId", element: <Story /> },
           { path: "favorites", element: <Favorites /> },
+          { path: "search", element: <Search /> },
           { path: "f/:feed", element: <FeedArchive /> },
           { path: "*", element: <NotFound /> },
         ],

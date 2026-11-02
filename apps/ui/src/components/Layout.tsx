@@ -1,24 +1,63 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration, useNavigate } from "react-router";
-import { KeyboardIcon, SearchIcon, SlidersHorizontalIcon, XIcon } from "lucide-react";
+import { BookmarkIcon, CalendarDaysIcon, KeyboardIcon, ListIcon, SearchIcon, SlidersHorizontalIcon, XIcon, type LucideIcon } from "lucide-react";
 import { ReadingSettings } from "@/components/ReadingSettings";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { formatLongDay, santiagoToday } from "@/lib/dates";
-import { FEEDS, FEED_IDS } from "@/lib/feeds";
+import { FEEDS, FEED_IDS, type FeedId } from "@/lib/feeds";
+import { MAX_QUERY } from "@/lib/filters";
 import { SHORTCUTS, useShortcuts } from "@/lib/shortcuts";
 import { dismissToast, useToasts } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
-const navLink = ({ isActive }: { isActive: boolean }) =>
+// Below 1024 px (Tailwind lg) the phone chrome shows, from it the desktop chrome. Both are in the DOM; CSS picks one.
+const TABS: { to: string; label: string; icon: LucideIcon; end?: boolean }[] = [
+  { to: "/", label: "Today", icon: CalendarDaysIcon, end: true },
+  { to: "/stories", label: "Stories", icon: ListIcon },
+  { to: "/favorites", label: "Saved", icon: BookmarkIcon },
+  { to: "/search", label: "Search", icon: SearchIcon },
+];
+
+const FEED_MARK: Record<FeedId, string> = {
+  chile: "bg-chile-mark",
+  cyber: "bg-cyber-mark outline outline-1 outline-foreground",
+  ai: "bg-ai-mark",
+};
+
+const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-mark";
+
+const deskTab = ({ isActive }: { isActive: boolean }) =>
   cn(
-    "relative shrink-0 rounded-sm px-1 py-2 text-sm whitespace-nowrap transition-colors",
-    isActive ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground",
+    "font-label inline-flex items-center gap-2 border-b-[3px] px-3.5 py-[15px] text-xs leading-none font-bold tracking-[1.4px] whitespace-nowrap uppercase",
+    isActive ? "border-foreground text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
   );
+
+const chromeButton = cn("inline-flex size-11 items-center justify-center text-on-chrome-muted hover:text-on-chrome lg:size-10", focusRing);
+
+function Brand({ size }: { size: "sm" | "lg" }) {
+  return (
+    <Link to="/" aria-label="The Briefing" className={cn("inline-flex items-center gap-2.5 text-on-chrome", focusRing)}>
+      <span
+        aria-hidden
+        className={cn(
+          "font-display inline-flex items-center justify-center bg-mark font-extrabold text-on-mark outline outline-1 outline-on-mark",
+          size === "sm" ? "size-5 text-xs" : "size-6 text-sm",
+        )}
+      >
+        N
+      </span>
+      <span className="font-label text-[11px] font-bold tracking-[2px] uppercase">The Briefing</span>
+    </Link>
+  );
+}
 
 function Toaster() {
   const toasts = useToasts();
   return (
-    <div aria-live="polite" role="status" className="pointer-events-none fixed inset-x-0 bottom-4 z-[60] flex flex-col items-center gap-2 px-4">
+    <div
+      aria-live="polite"
+      role="status"
+      className="pointer-events-none fixed inset-x-0 bottom-[calc(60px+env(safe-area-inset-bottom)+1rem)] z-[60] flex flex-col items-center gap-2 px-4 lg:bottom-4"
+    >
       {toasts.map((t) => (
         <div
           key={t.id}
@@ -62,20 +101,27 @@ export function Layout() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const navigate = useNavigate();
+  const topSearch = useRef<HTMLInputElement | null>(null);
 
+  // "/": the page's own field (Stories, Search), else the desktop top bar field, else the Search page.
   const onSearch = useCallback(() => {
-    const input = document.querySelector<HTMLInputElement>("[data-search-input]");
+    const desktop = typeof matchMedia === "function" && matchMedia("(min-width: 1024px)").matches;
+    const input = document.querySelector<HTMLInputElement>("#main [data-search-input]") ?? (desktop ? topSearch.current : null);
     if (input) {
       input.focus();
       input.select();
     } else {
-      void navigate("/stories", { state: { focusSearch: true } });
+      void navigate("/search");
     }
   }, [navigate]);
   const onHelp = useCallback(() => setHelpOpen(true), []);
   useShortcuts({ onSearch, onHelp });
 
-  const today = santiagoToday();
+  const submitSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const q = (topSearch.current?.value ?? "").trim();
+    void navigate(q ? `/search?q=${encodeURIComponent(q)}` : "/search");
+  };
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -85,69 +131,78 @@ export function Layout() {
       >
         Skip to content
       </a>
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 pt-2.5 sm:px-6">
-          <Link to="/" className="headline text-[1.45rem] leading-none font-bold tracking-tight sm:text-[1.65rem]">
-            The Briefing
-          </Link>
-          <time dateTime={today} className="hidden text-xs text-muted-foreground md:block">
-            {formatLongDay(today)}
-          </time>
-          <div className="ml-auto flex items-center gap-0.5">
-            <button
-              type="button"
-              onClick={onSearch}
-              className="inline-flex size-10 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
-              aria-label="Search stories"
-              title="Search (/)"
+      <header className="sticky top-0 z-40">
+        <div className="flex h-14 items-center justify-between bg-chrome px-4 lg:hidden">
+          <Brand size="sm" />
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className={cn(chromeButton, "border border-on-chrome-muted/50")}
+            aria-label="Reading settings"
+            title="Reading settings"
+          >
+            <SlidersHorizontalIcon className="size-5" aria-hidden />
+          </button>
+        </div>
+        <div className="hidden h-16 grid-cols-[1fr_minmax(0,560px)_1fr] items-center gap-6 bg-chrome px-8 lg:grid">
+          <div className="justify-self-start">
+            <Brand size="lg" />
+          </div>
+          <form role="search" onSubmit={submitSearch} className="relative">
+            <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-on-chrome-muted" aria-hidden />
+            <input
+              ref={topSearch}
+              type="search"
+              enterKeyHint="search"
+              aria-label="Search stories, tags, CVEs"
+              placeholder="Search stories, tags, CVEs"
+              maxLength={MAX_QUERY}
+              className={cn(
+                "font-body h-10 w-full bg-chrome-field pr-10 pl-10 text-sm text-on-chrome placeholder:text-on-chrome-muted [&::-webkit-search-cancel-button]:hidden",
+                focusRing,
+              )}
+            />
+            <kbd
+              aria-hidden
+              className="font-label absolute top-1/2 right-3 -translate-y-1/2 border border-on-chrome-muted/50 px-1.5 py-0.5 text-[10px] leading-none text-on-chrome-muted"
             >
-              <SearchIcon className="size-[1.15rem]" aria-hidden />
+              /
+            </kbd>
+          </form>
+          <div className="flex items-center justify-self-end">
+            <button type="button" onClick={() => setSettingsOpen(true)} className={chromeButton} aria-label="Reading settings" title="Reading settings">
+              <SlidersHorizontalIcon className="size-5" aria-hidden />
             </button>
-            <button
-              type="button"
-              onClick={() => setSettingsOpen(true)}
-              className="inline-flex size-10 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
-              aria-label="Reading settings"
-              title="Reading settings"
-            >
-              <SlidersHorizontalIcon className="size-[1.15rem]" aria-hidden />
-            </button>
-            <button
-              type="button"
-              onClick={onHelp}
-              className="hidden size-10 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground sm:inline-flex"
-              aria-label="Keyboard shortcuts"
-              title="Keyboard shortcuts (?)"
-            >
-              <KeyboardIcon className="size-[1.15rem]" aria-hidden />
+            <button type="button" onClick={onHelp} className={chromeButton} aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">
+              <KeyboardIcon className="size-5" aria-hidden />
             </button>
           </div>
         </div>
-        <nav aria-label="Sections" className="mx-auto max-w-6xl px-4 sm:px-6">
-          <ul className="-mx-1 flex items-center gap-3 overflow-x-auto pr-6 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] sm:gap-4 sm:pr-0 sm:[mask-image:none]">
+        <nav aria-label="Sections" className="hidden border-b border-border bg-raised px-8 lg:block">
+          <ul className="flex items-center">
             <li>
-              <NavLink to="/" end className={navLink}>
+              <NavLink to="/" end className={deskTab}>
                 Today
               </NavLink>
             </li>
-            <li>
-              <NavLink to="/stories" className={navLink}>
-                Stories
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/favorites" className={navLink}>
-                Favorites
-              </NavLink>
-            </li>
-            <li aria-hidden className="h-4 w-px shrink-0 bg-border" />
             {FEED_IDS.map((id) => (
               <li key={id} data-feed={id}>
-                <NavLink to={`/f/${id}`} className={(p) => cn(navLink(p), p.isActive && "text-feed")}>
+                <NavLink to={`/f/${id}`} className={deskTab}>
+                  <span aria-hidden className={cn("size-2", FEED_MARK[id])} />
                   {FEEDS[id].label}
                 </NavLink>
               </li>
             ))}
+            <li>
+              <NavLink to="/stories" className={deskTab}>
+                Stories
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/favorites" className={deskTab}>
+                Saved
+              </NavLink>
+            </li>
           </ul>
         </nav>
       </header>
@@ -155,13 +210,36 @@ export function Layout() {
         <Outlet />
       </main>
       <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-5 text-xs text-muted-foreground sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-1 px-4 pt-5 pb-[calc(60px+env(safe-area-inset-bottom)+1.25rem)] text-xs text-muted-foreground sm:px-6 lg:pb-5">
           <span>Briefings are AI-written summaries of web sources. Check the sources before relying on them.</span>
-          <button type="button" className="underline underline-offset-2" onClick={onHelp}>
+          <button type="button" className="hidden underline underline-offset-2 lg:inline" onClick={onHelp}>
             Keyboard shortcuts
           </button>
         </div>
       </footer>
+      <nav aria-label="Tabs" className="fixed inset-x-0 bottom-0 z-40 bg-chrome pb-[env(safe-area-inset-bottom)] lg:hidden">
+        <ul className="flex h-[60px]">
+          {TABS.map(({ to, label, icon: Icon, end }) => (
+            <li key={to} className="flex-1">
+              <NavLink
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  cn("relative flex h-full flex-col items-center justify-center gap-1", focusRing, isActive ? "text-mark" : "text-on-chrome-muted")
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && <span aria-hidden className="absolute top-0 left-1/2 h-[3px] w-6 -translate-x-1/2 bg-mark" />}
+                    <Icon className="size-5" aria-hidden />
+                    <span className="font-label text-[10px] leading-none font-bold tracking-[0.8px] uppercase">{label}</span>
+                  </>
+                )}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
       <ReadingSettings open={settingsOpen} onOpenChange={setSettingsOpen} />
       <ShortcutHelp open={helpOpen} onOpenChange={setHelpOpen} />
       <Toaster />
