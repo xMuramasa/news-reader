@@ -495,9 +495,6 @@ html[data-width="wide"] {
   [data-theme="endfield"] .feed-strip[data-feed="cyber"] {
     box-shadow: inset 0 0 0 1px var(--fg);
   }
-  [data-theme="endfield"] .rounded-full {
-    border-radius: 0;
-  }
   .feed-rule {
     background: var(--feed, var(--border-strong));
   }
@@ -606,4 +603,10 @@ html[data-width="wide"] {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Endfield has square corners, pills included. Unlayered on purpose: a rule inside @layer components loses to the
+   utilities layer, where rounded-full lives. */
+[data-theme="endfield"] .rounded-full {
+  border-radius: 0;
 }
