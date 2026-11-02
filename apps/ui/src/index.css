@@ -2,12 +2,101 @@
 @import "@fontsource-variable/newsreader";
 @import "@fontsource-variable/newsreader/wght-italic.css";
 @import "@fontsource-variable/inter";
+@import "@fontsource-variable/archivo";
+@import "@fontsource-variable/outfit";
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/jetbrains-mono";
 
 /* Themes are data-theme on <html> (set before first paint by /theme-init.js). Every text colour below keeps 4.5:1
-   against --bg, --card and --muted in its theme; test/dom/contrast.test.ts checks it. */
+   against --bg, --card and --muted in its theme; test/dom/contrast.test.ts checks it. The token contract (chrome, mark,
+   raised, sunken, rule, outline, feed marks, alert, chip-*, fonts) is defined by every theme and exposed as utilities
+   in @theme inline below. */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+/* Endfield: the default. Paper, ink, a yellow mark, square corners. */
 :root,
+[data-theme="endfield"] {
+  color-scheme: light;
+  --bg: #f2f2f2;
+  --fg: #191919;
+  --card: #ffffff;
+  --muted: #e5e5e5;
+  --muted-fg: #666666;
+  --border: #d9d9d9;
+  --border-strong: #808080;
+  --ring: #0040e8;
+  --chile: #b8231b;
+  --chile-blue: #0040e8;
+  --cyber: #6b5900;
+  --cyber-strip: #191919;
+  --cyber-glow: #fffa00;
+  --ai: #a8007a;
+  --on-accent: #ffffff;
+  --ok: #0a6b42;
+  --bad: #b8231b;
+  --warn-bg: #ff1aac;
+  --warn-fg: #191919;
+  --danger-bg: #fde3e1;
+  --danger-fg: #7a120d;
+  --info-bg: #fffa00;
+  --info-fg: #191919;
+  --g-right: #1d4ed8;
+  --g-center: #7e22ce;
+  --g-left: #b91c1c;
+  --g-independent: #047857;
+  --g-foreign: #0e7490;
+  --g-gov_vendor: #b45309;
+  --g-press: #1d4ed8;
+  --g-research: #7e22ce;
+  --g-lab: #be185d;
+
+  --chrome: #191919;
+  --on-chrome: #f2f2f2;
+  --on-chrome-muted: #999999;
+  --chrome-field: #35373c;
+  --mark: #fffa00;
+  --on-mark: #191919;
+  --raised: #ffffff;
+  --sunken: #e5e5e5;
+  --rule: #d9d9d9;
+  --outline: #c8c8c0;
+  --chile-mark: #e5332a;
+  --cyber-mark: #fffa00;
+  --ai-mark: #ff1aac;
+  --alert: #b8231b;
+  --chip-danger: #d92b22;
+  --chip-danger-fg: #ffffff;
+  --chip-stack: #fffa00;
+  --chip-stack-fg: #191919;
+  --chip-warn: #35373c;
+  --chip-warn-fg: #fffa00;
+  --chip-cve: #e5e5e5;
+  --chip-cve-fg: #191919;
+  --chip-blind: #ff1aac;
+  --chip-blind-fg: #191919;
+  --chip-update: #0040e8;
+  --chip-patched: #00ffa2;
+  --chip-patched-fg: #191919;
+  --chip-plain: #e5e5e5;
+  --chip-plain-fg: #666666;
+
+  --f-display: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --f-label: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --f-body: "Outfit Variable", ui-sans-serif, system-ui, sans-serif;
+  --f-data: "JetBrains Mono Variable", ui-monospace, monospace;
+}
+
+/* Square corners (Tailwind's radius scale; rounded-full pills and dots too, see the rule in @layer components). */
+[data-theme="endfield"] {
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+}
+
 [data-theme="light"] {
   color-scheme: light;
   --bg: #fbfaf7;
@@ -42,6 +131,41 @@
   --g-press: #1d4ed8;
   --g-research: #7e22ce;
   --g-lab: #be185d;
+
+  --chrome: #1c1917;
+  --on-chrome: #fbfaf7;
+  --on-chrome-muted: #a8a29e;
+  --chrome-field: #3a3733;
+  --mark: #fbbf24;
+  --on-mark: #1c1917;
+  --raised: #ffffff;
+  --sunken: #f1eee8;
+  --rule: #ddd7cc;
+  --outline: #b8b0a2;
+  --chile-mark: #b91c1c;
+  --cyber-mark: #f59e0b;
+  --ai-mark: #6d28d9;
+  --alert: #b91c1c;
+  --chip-danger: #b91c1c;
+  --chip-danger-fg: #ffffff;
+  --chip-stack: #ede9fe;
+  --chip-stack-fg: #4c1d95;
+  --chip-warn: #fef3c7;
+  --chip-warn-fg: #78350f;
+  --chip-cve: #f1eee8;
+  --chip-cve-fg: #1c1917;
+  --chip-blind: #be185d;
+  --chip-blind-fg: #ffffff;
+  --chip-update: #1d4ed8;
+  --chip-patched: #dcfce7;
+  --chip-patched-fg: #166534;
+  --chip-plain: #f1eee8;
+  --chip-plain-fg: #57534e;
+
+  --f-display: "Newsreader Variable", "Iowan Old Style", Georgia, serif;
+  --f-label: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-body: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-data: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 [data-theme="dark"] {
@@ -78,6 +202,41 @@
   --g-press: #60a5fa;
   --g-research: #c084fc;
   --g-lab: #f472b6;
+
+  --chrome: #000000;
+  --on-chrome: #ece9e2;
+  --on-chrome-muted: #aaa49c;
+  --chrome-field: #262421;
+  --mark: #fbbf24;
+  --on-mark: #121212;
+  --raised: #1b1a18;
+  --sunken: #262421;
+  --rule: #3a3733;
+  --outline: #5a554e;
+  --chile-mark: #f87171;
+  --cyber-mark: #fbbf24;
+  --ai-mark: #a78bfa;
+  --alert: #f87171;
+  --chip-danger: #f87171;
+  --chip-danger-fg: #121212;
+  --chip-stack: #2a1f45;
+  --chip-stack-fg: #ddd6fe;
+  --chip-warn: #3a2a0a;
+  --chip-warn-fg: #fde68a;
+  --chip-cve: #262421;
+  --chip-cve-fg: #ece9e2;
+  --chip-blind: #f472b6;
+  --chip-blind-fg: #121212;
+  --chip-update: #93c5fd;
+  --chip-patched: #14532d;
+  --chip-patched-fg: #bbf7d0;
+  --chip-plain: #262421;
+  --chip-plain-fg: #aaa49c;
+
+  --f-display: "Newsreader Variable", "Iowan Old Style", Georgia, serif;
+  --f-label: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-body: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-data: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 [data-theme="sepia"] {
@@ -114,20 +273,59 @@
   --g-press: #1e40af;
   --g-research: #6b21a8;
   --g-lab: #9d174d;
+
+  --chrome: #3b2f22;
+  --on-chrome: #faf4e4;
+  --on-chrome-muted: #cdbf9f;
+  --chrome-field: #54452f;
+  --mark: #f0b429;
+  --on-mark: #2a2117;
+  --raised: #faf4e4;
+  --sunken: #ebe1c8;
+  --rule: #d8c9a6;
+  --outline: #b3a27e;
+  --chile-mark: #9f1d1d;
+  --cyber-mark: #d97706;
+  --ai-mark: #5b21b6;
+  --alert: #9f1d1d;
+  --chip-danger: #9f1d1d;
+  --chip-danger-fg: #ffffff;
+  --chip-stack: #e4d9ee;
+  --chip-stack-fg: #3b1a70;
+  --chip-warn: #f3dfa6;
+  --chip-warn-fg: #5c2d06;
+  --chip-cve: #ebe1c8;
+  --chip-cve-fg: #3b2f22;
+  --chip-blind: #9d174d;
+  --chip-blind-fg: #ffffff;
+  --chip-update: #1e40af;
+  --chip-patched: #d3e6c4;
+  --chip-patched-fg: #14532d;
+  --chip-plain: #ebe1c8;
+  --chip-plain-fg: #5e4c37;
+
+  --f-display: "Newsreader Variable", "Iowan Old Style", Georgia, serif;
+  --f-label: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-body: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-data: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-/* Per-feed accent: data-feed on any element sets --feed for strips, active chips and focus rings inside it. */
+/* Per-feed accent: data-feed on any element sets --feed for strips, active chips and focus rings inside it. --feed-mark
+   is the graphic (strips, squares), --feed the text/ring colour. */
 [data-feed="chile"] {
   --feed: var(--chile);
   --feed-2: var(--chile-blue);
+  --feed-mark: var(--chile-mark);
 }
 [data-feed="cyber"] {
   --feed: var(--cyber);
   --feed-2: var(--cyber-glow);
+  --feed-mark: var(--cyber-mark);
 }
 [data-feed="ai"] {
   --feed: var(--ai);
   --feed-2: var(--ai);
+  --feed-mark: var(--ai-mark);
 }
 
 @theme inline {
@@ -154,6 +352,40 @@
   --color-danger-foreground: var(--danger-fg);
   --color-info: var(--info-bg);
   --color-info-foreground: var(--info-fg);
+  --color-chrome: var(--chrome);
+  --color-on-chrome: var(--on-chrome);
+  --color-on-chrome-muted: var(--on-chrome-muted);
+  --color-chrome-field: var(--chrome-field);
+  --color-mark: var(--mark);
+  --color-on-mark: var(--on-mark);
+  --color-raised: var(--raised);
+  --color-sunken: var(--sunken);
+  --color-rule: var(--rule);
+  --color-outline: var(--outline);
+  --color-chile-mark: var(--chile-mark);
+  --color-cyber-mark: var(--cyber-mark);
+  --color-ai-mark: var(--ai-mark);
+  --color-feed-mark: var(--feed-mark, var(--border-strong));
+  --color-alert: var(--alert);
+  --color-chip-danger: var(--chip-danger);
+  --color-chip-danger-fg: var(--chip-danger-fg);
+  --color-chip-stack: var(--chip-stack);
+  --color-chip-stack-fg: var(--chip-stack-fg);
+  --color-chip-warn: var(--chip-warn);
+  --color-chip-warn-fg: var(--chip-warn-fg);
+  --color-chip-cve: var(--chip-cve);
+  --color-chip-cve-fg: var(--chip-cve-fg);
+  --color-chip-blind: var(--chip-blind);
+  --color-chip-blind-fg: var(--chip-blind-fg);
+  --color-chip-update: var(--chip-update);
+  --color-chip-patched: var(--chip-patched);
+  --color-chip-patched-fg: var(--chip-patched-fg);
+  --color-chip-plain: var(--chip-plain);
+  --color-chip-plain-fg: var(--chip-plain-fg);
+  --font-display: var(--f-display);
+  --font-label: var(--f-label);
+  --font-body: var(--f-body);
+  --font-data: var(--f-data);
   --font-serif: "Newsreader Variable", "Iowan Old Style", Georgia, serif;
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
@@ -192,13 +424,16 @@ html[data-width="wide"] {
   body {
     background: var(--bg);
     color: var(--fg);
-    font-family: var(--font-sans);
+    font-family: var(--f-body);
     -webkit-font-smoothing: antialiased;
   }
   :focus-visible {
     outline: 2px solid var(--feed, var(--ring));
     outline-offset: 2px;
     border-radius: 2px;
+  }
+  [data-theme="endfield"] :focus-visible {
+    border-radius: 0;
   }
   ::selection {
     background: color-mix(in srgb, var(--feed, var(--ring)) 25%, transparent);
@@ -223,13 +458,13 @@ html[data-width="wide"] {
     max-width: var(--measure);
   }
   .headline {
-    font-family: var(--font-serif);
+    font-family: var(--f-display);
     font-optical-sizing: auto;
     letter-spacing: -0.01em;
     text-wrap: balance;
   }
   .kicker {
-    font-family: var(--font-sans);
+    font-family: var(--f-label);
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.08em;
@@ -248,6 +483,20 @@ html[data-width="wide"] {
   .feed-strip[data-feed="cyber"] {
     background: var(--cyber-strip);
     box-shadow: inset -2px 0 0 var(--cyber-glow);
+  }
+  /* Endfield: flat feed marks; the cyber yellow gets a 1 px ink outline so it reads on white. */
+  [data-theme="endfield"] .feed-strip,
+  [data-theme="endfield"] [data-feed] .feed-strip,
+  [data-theme="endfield"] .feed-strip[data-feed] {
+    background: var(--feed-mark, var(--border-strong));
+    box-shadow: none;
+  }
+  [data-theme="endfield"] [data-feed="cyber"] .feed-strip,
+  [data-theme="endfield"] .feed-strip[data-feed="cyber"] {
+    box-shadow: inset 0 0 0 1px var(--fg);
+  }
+  [data-theme="endfield"] .rounded-full {
+    border-radius: 0;
   }
   .feed-rule {
     background: var(--feed, var(--border-strong));

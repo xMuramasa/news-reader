@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 
 export const SETTINGS_KEY = "news-reader:settings";
 
-export const THEMES = ["light", "dark", "sepia"] as const;
+export const THEMES = ["endfield", "light", "dark", "sepia"] as const;
 export const SIZES = ["s", "m", "l", "xl"] as const;
 export const FONTS = ["serif", "sans"] as const;
 export const WIDTHS = ["narrow", "medium", "wide"] as const;
@@ -15,7 +15,7 @@ export type Font = (typeof FONTS)[number];
 export type Width = (typeof WIDTHS)[number];
 
 export interface Settings {
-  /** null: follow the system light/dark preference. */
+  /** null: the default, "follow the system". For now that resolves to Endfield (it has no dark variant yet). */
   theme: Theme | null;
   size: Size;
   font: Font;
@@ -44,8 +44,9 @@ export function parseSettings(raw: string | null): Settings {
   };
 }
 
+/** What "follow the system" means: Endfield until it has a dark variant, then light/dark by the system preference. */
 export function systemTheme(): Theme {
-  return typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "endfield";
 }
 
 export function resolvedTheme(s: Settings): Theme {
@@ -101,15 +102,10 @@ export function useSettings(): Settings {
   return useSyncExternalStore(subscribe, getSettings, getSettings);
 }
 
-/** Follow other tabs and, when no theme is chosen, the system preference. Call once at start. */
+/** Follow other tabs. Call once at start. */
 export function watchSettings(): void {
   if (typeof window === "undefined") return;
   window.addEventListener("storage", (e) => {
     if (e.key === SETTINGS_KEY) reloadSettings();
   });
-  if (typeof matchMedia === "function") {
-    matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => {
-      if (current.theme === null) applySettings(document.documentElement, current);
-    });
-  }
 }

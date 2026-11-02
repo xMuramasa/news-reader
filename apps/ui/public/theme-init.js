@@ -9,10 +9,8 @@
   function pick(list, v, d) {
     return typeof v === "string" && list.indexOf(v) !== -1 ? v : d;
   }
-  var theme = pick(["light", "dark", "sepia"], s.theme, null);
-  if (!theme) {
-    theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  }
+  // No stored theme ("follow the system") is endfield for now, like systemTheme() in settings.ts.
+  var theme = pick(["endfield", "light", "dark", "sepia"], s.theme, "endfield");
   var d = document.documentElement;
   d.setAttribute("data-theme", theme);
   d.setAttribute("data-size", pick(["s", "m", "l", "xl"], s.size, "m"));

@@ -6,16 +6,19 @@ import { ApiError } from "@/lib/api";
 
 export function StoryListSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div role="status" aria-label="Loading stories" className="flex flex-col gap-4">
+    <div role="status" aria-label="Loading stories" className="flex flex-col gap-1.5">
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="flex overflow-hidden rounded-lg border border-border bg-card">
-          <div className="w-1 bg-muted" />
-          <div className="flex flex-1 flex-col gap-3 p-5">
-            <Skeleton className="h-3 w-32" />
-            <Skeleton className="h-6 w-4/5" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-11/12" />
-            <Skeleton className="h-3 w-40" />
+          <div className="w-[3px] bg-muted" />
+          <div className="flex flex-1 flex-col gap-1.5 pt-2.5 pr-3 pb-3 pl-[15px]">
+            <Skeleton className="h-2.5 w-32" />
+            <Skeleton className="h-4 w-4/5" />
+            <Skeleton className="h-4 w-3/5" />
+            <div className="flex gap-1">
+              <Skeleton className="h-[1.0625rem] w-16" />
+              <Skeleton className="h-[1.0625rem] w-12" />
+              <Skeleton className="h-[1.0625rem] w-20" />
+            </div>
           </div>
         </div>
       ))}

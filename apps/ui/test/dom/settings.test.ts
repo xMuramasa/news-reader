@@ -4,10 +4,12 @@ import { join } from "node:path";
 import {
   DEFAULT_SETTINGS,
   SETTINGS_KEY,
+  THEMES,
   applySettings,
   getSettings,
   parseSettings,
   reloadSettings,
+  resolvedTheme,
   setSettings,
 } from "../../src/lib/settings.ts";
 
@@ -48,6 +50,20 @@ describe("reading settings", () => {
     });
   });
 
+  test("Endfield comes first, and 'follow the system' (theme null) resolves to Endfield even when the system is dark", () => {
+    expect(THEMES).toEqual(["endfield", "light", "dark", "sepia"]);
+    const dark = globalThis.matchMedia;
+    globalThis.matchMedia = ((q: string) => ({ matches: q.includes("dark"), addEventListener() {}, removeEventListener() {} })) as unknown as typeof matchMedia;
+    try {
+      expect(resolvedTheme(DEFAULT_SETTINGS)).toBe("endfield");
+      expect(runInitScript().theme).toBe("endfield");
+      applySettings(document.documentElement, DEFAULT_SETTINGS);
+      expect(attrs().theme).toBe("endfield");
+    } finally {
+      globalThis.matchMedia = dark;
+    }
+  });
+
   test("setSettings persists to localStorage and applies to <html>", () => {
     setSettings({ theme: "sepia", size: "l", font: "sans", width: "narrow" });
     expect(JSON.parse(localStorage.getItem(SETTINGS_KEY)!)).toEqual({ theme: "sepia", size: "l", font: "sans", width: "narrow" });
@@ -69,6 +85,8 @@ describe("reading settings", () => {
     JSON.stringify({ theme: "dark", size: "s" }),
     JSON.stringify({ theme: "sepia", size: "xl", font: "sans", width: "wide" }),
     JSON.stringify({ theme: "light", size: "huge", width: "narrow" }),
+    JSON.stringify({ theme: "endfield", size: "l" }),
+    JSON.stringify({ theme: "neon" }),
   ])("theme-init.js applies the same attributes as applySettings for %p", (stored) => {
     if (stored === null) localStorage.removeItem(SETTINGS_KEY);
     else localStorage.setItem(SETTINGS_KEY, stored);

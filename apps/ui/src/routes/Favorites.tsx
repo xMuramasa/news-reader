@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ActiveFilters, SearchBox } from "@/components/Filters";
 import { EmptyState, ErrorState, StoryListSkeleton } from "@/components/States";
-import { SnapshotCard, StoryCard } from "@/components/StoryCard";
+import { SnapshotRow, StoryRow } from "@/components/StoryRow";
 import { LoadMore } from "@/components/StoryList";
 import { useApi } from "@/lib/api";
 import { EMPTY_FILTERS, hasActiveFilters, type Filters } from "@/lib/filters";
@@ -62,9 +62,9 @@ export function Favorites() {
     ) : (
       <div className="flex flex-col gap-4">
         {shown.length ? (
-          <ol className="flex flex-col gap-4" aria-label="Favorites">
+          <ol className="flex flex-col gap-1.5" aria-label="Favorites">
             {shown.map((f) => (
-              <li key={f.story_id}>{f.story ? <StoryCard story={f.story} /> : <SnapshotCard storyId={f.story_id} snapshot={f.snapshot} />}</li>
+              <li key={f.story_id}>{f.story ? <StoryRow story={f.story} showFeed showDate /> : <SnapshotRow storyId={f.story_id} snapshot={f.snapshot} />}</li>
             ))}
           </ol>
         ) : (

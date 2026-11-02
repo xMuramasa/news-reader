@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { screen, within } from "@testing-library/react";
 import type { EditionView, StoryView } from "@news/schema";
 import { FEEDS } from "../../src/lib/feeds.ts";
+import { StoryRow } from "../../src/components/StoryRow.tsx";
 import { Edition } from "../../src/routes/Edition.tsx";
 import { fakeApi, renderWith } from "./helpers.tsx";
 
@@ -79,5 +80,22 @@ describe.each(["chile", "cyber", "ai"] as const)("%s fixture edition", (feed) =>
       expect(a.getAttribute("rel")).toBe("noopener noreferrer");
       expect(a.getAttribute("href")).toMatch(/^https?:\/\//);
     }
+  });
+
+  test("every real story also renders as a row, expanded, with at most four chips", async () => {
+    const edition = await load(feed);
+    renderWith(
+      <ol>
+        {edition.stories.map((s) => (
+          <li key={s.id}>
+            <StoryRow story={s} showFeed defaultExpanded />
+          </li>
+        ))}
+      </ol>,
+    );
+    expect(document.querySelectorAll("article[data-story-card]").length).toBe(edition.stories.length);
+    for (const tags of document.querySelectorAll("ul[aria-label=Tags]")) expect(tags.querySelectorAll("li").length).toBeLessThanOrEqual(4);
+    expect(document.querySelectorAll("a[href^='javascript'], script, iframe").length).toBe(0);
+    for (const a of document.querySelectorAll<HTMLAnchorElement>("a[target=_blank]")) expect(a.getAttribute("rel")).toBe("noopener noreferrer");
   });
 });

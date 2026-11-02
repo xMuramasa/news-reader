@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, StoryListSkeleton } from "@/components/States";
-import { StoryCard } from "@/components/StoryCard";
+import { StoryRow } from "@/components/StoryRow";
 import { useApi } from "@/lib/api";
 import type { Filters } from "@/lib/filters";
 
@@ -68,10 +68,10 @@ export function StoryList({
   if (!stories.length) return <>{empty}</>;
   return (
     <div className="flex flex-col gap-4">
-      <ol className="flex flex-col gap-4" aria-label="Stories">
+      <ol className="flex flex-col gap-1.5" aria-label="Stories">
         {stories.map((s) => (
           <li key={s.id}>
-            <StoryCard story={s} showFeed={showFeed} />
+            <StoryRow story={s} showFeed={showFeed} showDate />
           </li>
         ))}
       </ol>

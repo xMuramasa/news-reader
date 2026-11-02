@@ -5,11 +5,47 @@ import { ExternalLinkIcon } from "lucide-react";
 import type { EnrichedSource } from "@news/schema";
 import { tagHref } from "@/lib/filters";
 import { displayDomain, nvdUrl, safeUrl } from "@/lib/safe-url";
-import { tagLabel, tagPrefix, tagTitle } from "@/lib/tags";
+import { rowTags, tagLabel, tagPrefix, tagTitle, type RowTagKind } from "@/lib/tags";
 import { cn } from "@/lib/utils";
 
 const chip =
-  "inline-flex max-w-full items-center gap-1 rounded-full border border-border bg-card px-2.5 py-0.5 text-[0.8125rem] leading-6";
+  "inline-flex max-w-full items-center gap-1 rounded-full border border-rule bg-raised px-2.5 py-0.5 font-label text-[0.8125rem] leading-6";
+
+// Row chips (Endfield "Chips"): padding 3/6, label font 10px with 0.6px tracking, filled from the chip-* tokens.
+const ROW_CHIP: Record<RowTagKind, string> = {
+  danger: "bg-chip-danger text-chip-danger-fg",
+  stack: "bg-chip-stack text-chip-stack-fg",
+  warn: "bg-chip-warn text-chip-warn-fg",
+  cve: "bg-chip-cve text-chip-cve-fg font-data font-medium",
+  blind: "bg-chip-blind text-chip-blind-fg",
+  update: "border border-chip-update text-chip-update",
+  patched: "bg-chip-patched text-chip-patched-fg",
+  plain: "bg-chip-plain text-chip-plain-fg",
+};
+
+/** The few chips a story row shows, in the agreed order (see rowTags). Each links to the stories filtered by that tag. */
+export function RowTagChips({ tags, feed, max = 4 }: { tags: readonly string[]; feed: string; max?: number }) {
+  const list = rowTags(tags, feed, max);
+  if (!list.length) return null;
+  return (
+    <ul className="flex flex-wrap items-center gap-1" aria-label="Tags">
+      {list.map((t) => (
+        <li key={t.tag} className="max-w-full">
+          <Link
+            to={tagHref(t.tag)}
+            title={tagTitle(t.tag)}
+            className={cn(
+              "inline-flex max-w-full items-center rounded-sm px-1.5 py-[3px] font-label text-[0.625rem] leading-none font-semibold tracking-[0.6px] uppercase hover:opacity-80",
+              ROW_CHIP[t.kind],
+            )}
+          >
+            <span className="truncate">{t.label}</span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export function ExternalLink({
   href,
@@ -76,7 +112,7 @@ export function CveChips({ cves, kev }: { cves: readonly string[]; kev?: boolean
     <ul className="flex flex-wrap gap-1.5" aria-label="CVEs">
       {cves.map((c) => {
         const url = nvdUrl(c);
-        const label = <span className="font-mono text-[0.78rem] tracking-tight">{c.toUpperCase()}</span>;
+        const label = <span className="font-data text-[0.78rem] font-medium tracking-tight">{c.toUpperCase()}</span>;
         return (
           <li key={c}>
             {url ? (
@@ -98,7 +134,7 @@ export function CveChips({ cves, kev }: { cves: readonly string[]; kev?: boolean
       })}
       {kev && (
         <li>
-          <Link to={tagHref("kev:yes")} className={cn(chip, "border-bad font-semibold text-bad")} title="In CISA's Known Exploited Vulnerabilities catalog">
+          <Link to={tagHref("kev:yes")} className={cn(chip, "border-chip-danger bg-chip-danger font-semibold text-chip-danger-fg")} title="In CISA's Known Exploited Vulnerabilities catalog">
             CISA KEV
           </Link>
         </li>
@@ -124,8 +160,8 @@ export function TagChips({ tags, limit, active = [] }: { tags: readonly string[]
               to={tagHref(t)}
               aria-label={tagTitle(t)}
               className={cn(
-                "inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs leading-5",
-                on ? "bg-feed text-on-accent" : "bg-muted text-muted-foreground hover:text-foreground",
+                "inline-flex items-center rounded-sm px-1.5 py-0.5 font-label text-xs leading-5",
+                on ? "bg-feed text-on-accent" : "bg-chip-plain text-chip-plain-fg hover:text-foreground",
               )}
             >
               <span aria-hidden className="mr-0.5 opacity-70">

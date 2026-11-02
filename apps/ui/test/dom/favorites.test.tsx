@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { useQuery } from "@tanstack/react-query";
 import type { StoriesResponse } from "@news/schema";
-import { StoryCard } from "../../src/components/StoryCard.tsx";
+import { StoryRow } from "../../src/components/StoryRow.tsx";
 import { ApiError, useApi } from "../../src/lib/api.ts";
 import { setFavoriteInData } from "../../src/lib/favorites.ts";
 import { matchesFavorite } from "../../src/routes/Favorites.tsx";
@@ -38,7 +38,7 @@ function ListProbe() {
   return (
     <>
       {q.data.stories.map((s) => (
-        <StoryCard key={s.id} story={s} />
+        <StoryRow key={s.id} story={s} />
       ))}
     </>
   );

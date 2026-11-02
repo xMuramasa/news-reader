@@ -23,11 +23,24 @@ export function contrast(a: string, b: string): number {
   return (x! + 0.05) / (y! + 0.05);
 }
 
-const THEMES = { light: '[data-theme="light"]', dark: '[data-theme="dark"]', sepia: '[data-theme="sepia"]' };
+const THEMES = {
+  endfield: '[data-theme="endfield"]',
+  light: '[data-theme="light"]',
+  dark: '[data-theme="dark"]',
+  sepia: '[data-theme="sepia"]',
+};
 const SURFACES = ["bg", "card", "muted"];
-const TEXT = ["fg", "muted-fg", "chile", "chile-blue", "cyber", "ai", "ok", "bad"];
+const TEXT = ["fg", "muted-fg", "chile", "chile-blue", "cyber", "ai", "ok", "bad", "alert", "chip-update"];
 // Graphics (coverage segments, strips) need 3:1 (WCAG 1.4.11).
 const GRAPHICS = ["g-right", "g-center", "g-left", "g-independent", "g-foreign", "g-gov_vendor", "g-press", "g-research", "g-lab", "border-strong"];
+// Feed marks are drawn on cards; the cyber mark is always drawn with an ink (fg) outline, so that outline is what must read.
+const FEED_MARKS = ["chile-mark", "ai-mark"];
+const CHIPS = ["danger", "stack", "warn", "cve", "blind", "patched", "plain"];
+const TOKENS = [
+  ...["chrome", "on-chrome", "on-chrome-muted", "chrome-field", "mark", "on-mark", "raised", "sunken", "rule", "outline"],
+  ...["chile-mark", "cyber-mark", "ai-mark", "alert", "chip-update"],
+  ...CHIPS.flatMap((c) => [`chip-${c}`, `chip-${c}-fg`]),
+];
 
 describe.each(Object.entries(THEMES))("%s theme", (_name, selector) => {
   const v = themeVars(selector);
@@ -50,5 +63,28 @@ describe.each(Object.entries(THEMES))("%s theme", (_name, selector) => {
 
   test.each(GRAPHICS)("graphic %s on card ≥ 3:1", (g) => {
     expect(contrast(v[g]!, v.card!)).toBeGreaterThanOrEqual(3);
+  });
+
+  test.each(TOKENS)("token contract: --%s is defined", (t) => {
+    expect(v[t]).toMatch(/^#[0-9a-f]{6}$/);
+  });
+
+  test.each([...CHIPS.map((c) => [`chip-${c}-fg`, `chip-${c}`] as const), ["on-chrome", "chrome"], ["on-chrome-muted", "chrome"], ["on-mark", "mark"]] as const)(
+    "%s on %s ≥ 4.5:1",
+    (a, b) => {
+      expect(contrast(v[a]!, v[b]!)).toBeGreaterThanOrEqual(4.5);
+    },
+  );
+
+  test.each(FEED_MARKS)("feed mark %s on card ≥ 3:1", (m) => {
+    expect(contrast(v[m]!, v.card!)).toBeGreaterThanOrEqual(3);
+  });
+
+  test("the cyber mark's ink outline (fg) on card ≥ 3:1", () => {
+    expect(contrast(v.fg!, v.card!)).toBeGreaterThanOrEqual(3);
+  });
+
+  test("raised is the card colour", () => {
+    expect(v.raised).toBe(v.card!);
   });
 });
