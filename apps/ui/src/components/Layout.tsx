@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration, useNavigate } from "react-router";
 import { BookmarkIcon, CalendarDaysIcon, KeyboardIcon, ListIcon, SearchIcon, SlidersHorizontalIcon, XIcon, type LucideIcon } from "lucide-react";
+import { EndfieldPaper } from "@/components/EndfieldPaper";
 import { ReadingSettings } from "@/components/ReadingSettings";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { FEEDS, FEED_IDS, type FeedId } from "@/lib/feeds";
@@ -125,6 +126,7 @@ export function Layout() {
 
   return (
     <div className="flex min-h-dvh flex-col">
+      <EndfieldPaper />
       <a
         href="#main"
         className="sr-only z-[70] rounded-md bg-foreground px-3 py-2 text-background focus:not-sr-only focus:fixed focus:top-2 focus:left-2"

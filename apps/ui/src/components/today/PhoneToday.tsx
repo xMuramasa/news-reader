@@ -49,7 +49,7 @@ function LeadCard({ story: s }: { story: StoryView }) {
         <div className="flex items-center gap-1.5">
           {unread && (
             <span className="inline-flex shrink-0" data-testid="unread-dot">
-              <span aria-hidden className="size-1.5 rotate-45 bg-foreground" />
+              <span aria-hidden className="size-1.5 rotate-45 bg-unread" />
               <span className="sr-only">Unread.</span>
             </span>
           )}

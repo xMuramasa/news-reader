@@ -27,7 +27,7 @@ const storyHref = (id: string) => `/s/${encodeURIComponent(id)}`;
 function UnreadDiamond({ size = "size-1.5" }: { size?: string }) {
   return (
     <span className="inline-flex shrink-0 items-center" data-testid="unread-dot">
-      <span aria-hidden className={cn(size, "rotate-45 bg-foreground")} />
+      <span aria-hidden className={cn(size, "rotate-45 bg-unread")} />
       <span className="sr-only">Unread.</span>
     </span>
   );
@@ -164,7 +164,7 @@ export function StoryRow({ story: s, heading: H = "h3", showFeed = false, showDa
             <Link
               to={storyHref(s.id)}
               onClick={() => markRead(s.id)}
-              className="inline-flex h-11 items-center gap-1.5 bg-foreground px-3 font-label text-[0.6875rem] font-bold tracking-[0.8px] text-background uppercase hover:opacity-85 lg:h-[30px]"
+              className="inline-flex h-11 items-center gap-1.5 bg-primary px-3 font-label text-[0.6875rem] font-bold tracking-[0.8px] text-on-primary uppercase hover:opacity-85 lg:h-[30px]"
             >
               Read story <ArrowRightIcon className="size-3.5" aria-hidden />
             </Link>

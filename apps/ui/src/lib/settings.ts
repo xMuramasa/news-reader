@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 
 export const SETTINGS_KEY = "news-reader:settings";
 
-export const THEMES = ["endfield", "light", "dark", "sepia"] as const;
+export const THEMES = ["endfield", "endfield-dark", "light", "dark", "sepia"] as const;
 export const SIZES = ["s", "m", "l", "xl"] as const;
 export const FONTS = ["serif", "sans"] as const;
 export const WIDTHS = ["narrow", "medium", "wide"] as const;
@@ -15,7 +15,7 @@ export type Font = (typeof FONTS)[number];
 export type Width = (typeof WIDTHS)[number];
 
 export interface Settings {
-  /** null: the default, "follow the system". For now that resolves to Endfield (it has no dark variant yet). */
+  /** null: the default, "follow the system": Endfield dark when the OS is dark, else Endfield. */
   theme: Theme | null;
   size: Size;
   font: Font;
@@ -44,9 +44,11 @@ export function parseSettings(raw: string | null): Settings {
   };
 }
 
-/** What "follow the system" means: Endfield until it has a dark variant, then light/dark by the system preference. */
+const DARK_QUERY = "(prefers-color-scheme: dark)";
+
+/** What "follow the system" means: Endfield dark when the OS prefers dark, else Endfield. */
 export function systemTheme(): Theme {
-  return "endfield";
+  return typeof matchMedia === "function" && matchMedia(DARK_QUERY).matches ? "endfield-dark" : "endfield";
 }
 
 export function resolvedTheme(s: Settings): Theme {
@@ -102,10 +104,17 @@ export function useSettings(): Settings {
   return useSyncExternalStore(subscribe, getSettings, getSettings);
 }
 
-/** Follow other tabs. Call once at start. */
+/** Follow other tabs and the system colour scheme (while the theme is "follow the system"). Call once at start. */
 export function watchSettings(): void {
   if (typeof window === "undefined") return;
   window.addEventListener("storage", (e) => {
     if (e.key === SETTINGS_KEY) reloadSettings();
+  });
+  if (typeof matchMedia !== "function") return;
+  matchMedia(DARK_QUERY).addEventListener("change", () => {
+    if (current.theme !== null) return;
+    current = { ...current }; // a new object, so useSettings() subscribers re-render
+    applySettings(document.documentElement, current);
+    for (const l of listeners) l();
   });
 }

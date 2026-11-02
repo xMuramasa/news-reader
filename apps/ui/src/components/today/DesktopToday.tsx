@@ -110,7 +110,7 @@ function GlanceCard({ title, alert, stories, kind }: { title: string; alert?: bo
 function Markets({ markets }: { markets: NonNullable<EditionView["markets"]> }) {
   if (!markets.items.length) return null;
   return (
-    <section aria-label="Markets" className="flex flex-col gap-3 bg-chrome p-3.5 text-on-chrome">
+    <section aria-label="Markets" className="flex flex-col gap-3 border border-markets-line bg-chrome p-3.5 text-on-chrome">
       <p className="font-label text-[0.625rem] leading-none font-bold tracking-[1.2px] text-mark uppercase">
         Markets{" "}
         {markets.as_of && <span className="font-medium text-on-chrome-muted normal-case">// {formatDay(markets.as_of).replace(/^\w+ /, "")}</span>}

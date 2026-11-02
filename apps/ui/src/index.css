@@ -11,7 +11,7 @@
    against --bg, --card and --muted in its theme; test/dom/contrast.test.ts checks it. The token contract (chrome, mark,
    raised, sunken, rule, outline, feed marks, alert, chip-*, fonts) is defined by every theme and exposed as utilities
    in @theme inline below. */
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, [data-theme="endfield-dark"], [data-theme="endfield-dark"] *));
 
 /* Endfield: the default. Paper, ink, a yellow mark, square corners. */
 :root,
@@ -79,6 +79,13 @@
   --chip-patched-fg: #191919;
   --chip-plain: #e5e5e5;
   --chip-plain-fg: #666666;
+  --primary: #191919;
+  --on-primary: #ffffff;
+  --unread: #191919;
+  --today: #191919;
+  --on-today: #fffa00;
+  --markets-line: #191919;
+  --contour: #c8c8c0;
 
   --f-display: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
   --f-label: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
@@ -86,8 +93,87 @@
   --f-data: "JetBrains Mono Variable", ui-monospace, monospace;
 }
 
-/* Square corners (Tailwind's radius scale; rounded-full pills and dots too, see the rule in @layer components). */
-[data-theme="endfield"] {
+/* Endfield dark: the same system on near-black ground; yellow carries the accents (primary action, unread, TODAY). */
+[data-theme="endfield-dark"] {
+  color-scheme: dark;
+  --bg: #191919;
+  --fg: #f2f2f2;
+  --card: #26282c;
+  --muted: #35373c;
+  --muted-fg: #b3b3b3;
+  --border: #3a3d44;
+  --border-strong: #8a8d95;
+  --ring: #8fa6ff;
+  --chile: #ff8a84;
+  --chile-blue: #8fa6ff;
+  --cyber: #fffa00;
+  --cyber-strip: #0e0f11;
+  --cyber-glow: #fffa00;
+  --ai: #ff7bd0;
+  --on-accent: #191919;
+  --ok: #4ade80;
+  --bad: #ff8a84;
+  --warn-bg: #ff1aac;
+  --warn-fg: #191919;
+  --danger-bg: #4a1c1a;
+  --danger-fg: #ffc9c5;
+  --info-bg: #fffa00;
+  --info-fg: #191919;
+  --g-right: #60a5fa;
+  --g-center: #c084fc;
+  --g-left: #f87171;
+  --g-independent: #34d399;
+  --g-foreign: #22d3ee;
+  --g-gov_vendor: #fbbf24;
+  --g-press: #60a5fa;
+  --g-research: #c084fc;
+  --g-lab: #f472b6;
+
+  --chrome: #0e0f11;
+  --on-chrome: #f2f2f2;
+  --on-chrome-muted: #999999;
+  --chrome-field: #35373c;
+  --mark: #fffa00;
+  --on-mark: #191919;
+  --raised: #26282c;
+  --sunken: #35373c;
+  --rule: #3a3d44;
+  --outline: #4a4d55;
+  --chile-mark: #ff6b63;
+  --cyber-mark: #fffa00;
+  --ai-mark: #ff1aac;
+  --alert: #ff8a84;
+  --chip-danger: #d92b22;
+  --chip-danger-fg: #ffffff;
+  --chip-stack: #fffa00;
+  --chip-stack-fg: #191919;
+  --chip-warn: #35373c;
+  --chip-warn-fg: #fffa00;
+  --chip-cve: #35373c;
+  --chip-cve-fg: #f2f2f2;
+  --chip-blind: #ff1aac;
+  --chip-blind-fg: #191919;
+  --chip-update: #8fa6ff;
+  --chip-patched: #00ffa2;
+  --chip-patched-fg: #191919;
+  --chip-plain: #35373c;
+  --chip-plain-fg: #d9d9d9;
+  --primary: #fffa00;
+  --on-primary: #191919;
+  --unread: #fffa00;
+  --today: #fffa00;
+  --on-today: #191919;
+  --markets-line: #3a3d44;
+  --contour: #4a4d55;
+
+  --f-display: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --f-label: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --f-body: "Outfit Variable", ui-sans-serif, system-ui, sans-serif;
+  --f-data: "JetBrains Mono Variable", ui-monospace, monospace;
+}
+
+/* Square corners in both Endfield themes (Tailwind's radius scale; rounded-full pills and dots too, see the rule at the end). */
+[data-theme^="endfield"] {
   --radius-xs: 0;
   --radius-sm: 0;
   --radius-md: 0;
@@ -161,6 +247,13 @@
   --chip-patched-fg: #166534;
   --chip-plain: #f1eee8;
   --chip-plain-fg: #57534e;
+  --primary: #1c1917;
+  --on-primary: #fbfaf7;
+  --unread: #1c1917;
+  --today: #1c1917;
+  --on-today: #fbbf24;
+  --markets-line: #1c1917;
+  --contour: #ddd7cc;
 
   --f-display: "Newsreader Variable", "Iowan Old Style", Georgia, serif;
   --f-label: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -232,6 +325,13 @@
   --chip-patched-fg: #bbf7d0;
   --chip-plain: #262421;
   --chip-plain-fg: #aaa49c;
+  --primary: #ece9e2;
+  --on-primary: #121212;
+  --unread: #ece9e2;
+  --today: #ece9e2;
+  --on-today: #121212;
+  --markets-line: #000000;
+  --contour: #262421;
 
   --f-display: "Newsreader Variable", "Iowan Old Style", Georgia, serif;
   --f-label: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -303,6 +403,13 @@
   --chip-patched-fg: #14532d;
   --chip-plain: #ebe1c8;
   --chip-plain-fg: #5e4c37;
+  --primary: #3b2f22;
+  --on-primary: #faf4e4;
+  --unread: #3b2f22;
+  --today: #3b2f22;
+  --on-today: #f0b429;
+  --markets-line: #3b2f22;
+  --contour: #d8c9a6;
 
   --f-display: "Newsreader Variable", "Iowan Old Style", Georgia, serif;
   --f-label: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -367,6 +474,13 @@
   --color-ai-mark: var(--ai-mark);
   --color-feed-mark: var(--feed-mark, var(--border-strong));
   --color-alert: var(--alert);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-unread: var(--unread);
+  --color-today: var(--today);
+  --color-on-today: var(--on-today);
+  --color-markets-line: var(--markets-line);
+  --color-contour: var(--contour);
   --color-chip-danger: var(--chip-danger);
   --color-chip-danger-fg: var(--chip-danger-fg);
   --color-chip-stack: var(--chip-stack);
@@ -432,7 +546,7 @@ html[data-width="wide"] {
     outline-offset: 2px;
     border-radius: 2px;
   }
-  [data-theme="endfield"] :focus-visible {
+  [data-theme^="endfield"] :focus-visible {
     border-radius: 0;
   }
   ::selection {
@@ -485,14 +599,14 @@ html[data-width="wide"] {
     box-shadow: inset -2px 0 0 var(--cyber-glow);
   }
   /* Endfield: flat feed marks; the cyber yellow gets a 1 px ink outline so it reads on white. */
-  [data-theme="endfield"] .feed-strip,
-  [data-theme="endfield"] [data-feed] .feed-strip,
-  [data-theme="endfield"] .feed-strip[data-feed] {
+  [data-theme^="endfield"] .feed-strip,
+  [data-theme^="endfield"] [data-feed] .feed-strip,
+  [data-theme^="endfield"] .feed-strip[data-feed] {
     background: var(--feed-mark, var(--border-strong));
     box-shadow: none;
   }
-  [data-theme="endfield"] [data-feed="cyber"] .feed-strip,
-  [data-theme="endfield"] .feed-strip[data-feed="cyber"] {
+  [data-theme^="endfield"] [data-feed="cyber"] .feed-strip,
+  [data-theme^="endfield"] .feed-strip[data-feed="cyber"] {
     box-shadow: inset 0 0 0 1px var(--fg);
   }
   .feed-rule {
@@ -607,6 +721,6 @@ html[data-width="wide"] {
 
 /* Endfield has square corners, pills included. Unlayered on purpose: a rule inside @layer components loses to the
    utilities layer, where rounded-full lives. */
-[data-theme="endfield"] .rounded-full {
+[data-theme^="endfield"] .rounded-full {
   border-radius: 0;
 }

@@ -1,7 +1,7 @@
 // Reading settings sheet: text size (4 steps), serif/sans, line width, theme. Saved in localStorage (lib/settings).
 import { useId } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { FONTS, SIZES, THEMES, WIDTHS, resolvedTheme, setSettings, useSettings, type Settings } from "@/lib/settings";
+import { FONTS, SIZES, THEMES, WIDTHS, resolvedTheme, setSettings, useSettings, type Settings, type Theme } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
 function Choice<T extends string>({
@@ -10,18 +10,20 @@ function Choice<T extends string>({
   value,
   onChange,
   render,
+  columns = options.length,
 }: {
   legend: string;
   options: readonly T[];
   value: T;
   onChange: (v: T) => void;
   render: (v: T) => React.ReactNode;
+  columns?: number;
 }) {
   const name = useId();
   return (
     <fieldset>
       <legend className="kicker mb-2 text-muted-foreground">{legend}</legend>
-      <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+      <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
         {options.map((o) => (
           <label
             key={o}
@@ -40,6 +42,13 @@ function Choice<T extends string>({
 }
 
 const SIZE_LABEL: Record<Settings["size"], string> = { s: "Small", m: "Medium", l: "Large", xl: "Extra large" };
+const THEME_LABEL: Record<Theme, string> = {
+  endfield: "Endfield",
+  "endfield-dark": "Endfield dark",
+  light: "Light",
+  dark: "Dark",
+  sepia: "Sepia",
+};
 const SIZE_SCALE: Record<Settings["size"], string> = { s: "0.8rem", m: "0.95rem", l: "1.1rem", xl: "1.25rem" };
 
 export function ReadingSettings({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
@@ -82,7 +91,8 @@ export function ReadingSettings({ open, onOpenChange }: { open: boolean; onOpenC
             options={THEMES}
             value={resolvedTheme(s)}
             onChange={(theme) => setSettings({ theme })}
-            render={(v) => <span className="capitalize">{v}</span>}
+            columns={3}
+            render={(v) => <span className="text-center">{THEME_LABEL[v]}</span>}
           />
           {s.theme !== null && (
             <button type="button" className="self-start text-sm underline underline-offset-2" onClick={() => setSettings({ theme: null })}>

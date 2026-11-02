@@ -11,6 +11,7 @@ import {
   reloadSettings,
   resolvedTheme,
   setSettings,
+  watchSettings,
 } from "../../src/lib/settings.ts";
 
 const INIT_SCRIPT = await Bun.file(join(import.meta.dir, "..", "..", "public", "theme-init.js")).text();
@@ -50,17 +51,50 @@ describe("reading settings", () => {
     });
   });
 
-  test("Endfield comes first, and 'follow the system' (theme null) resolves to Endfield even when the system is dark", () => {
-    expect(THEMES).toEqual(["endfield", "light", "dark", "sepia"]);
-    const dark = globalThis.matchMedia;
-    globalThis.matchMedia = ((q: string) => ({ matches: q.includes("dark"), addEventListener() {}, removeEventListener() {} })) as unknown as typeof matchMedia;
+  test("Endfield comes first, then Endfield dark and the classic three", () => {
+    expect(THEMES).toEqual(["endfield", "endfield-dark", "light", "dark", "sepia"]);
+  });
+
+  test.each([
+    [true, "endfield-dark"],
+    [false, "endfield"],
+  ] as const)("'follow the system' (theme null) with a dark system = %p resolves to %s, in settings.ts and in theme-init.js", (dark, expected) => {
+    const real = globalThis.matchMedia;
+    globalThis.matchMedia = ((q: string) => ({ matches: dark && q.includes("dark"), addEventListener() {}, removeEventListener() {} })) as unknown as typeof matchMedia;
     try {
-      expect(resolvedTheme(DEFAULT_SETTINGS)).toBe("endfield");
-      expect(runInitScript().theme).toBe("endfield");
+      expect(resolvedTheme(DEFAULT_SETTINGS)).toBe(expected);
+      expect(runInitScript().theme).toBe(expected);
       applySettings(document.documentElement, DEFAULT_SETTINGS);
-      expect(attrs().theme).toBe("endfield");
+      expect(attrs().theme).toBe(expected);
     } finally {
-      globalThis.matchMedia = dark;
+      globalThis.matchMedia = real;
+    }
+  });
+
+  test("a stored choice wins over the system, and a system change is followed live only while following", () => {
+    const real = globalThis.matchMedia;
+    let dark = false;
+    let onChange = () => {};
+    globalThis.matchMedia = ((q: string) => ({
+      get matches() {
+        return dark && q.includes("dark");
+      },
+      addEventListener: (_: string, f: () => void) => (onChange = f),
+      removeEventListener() {},
+    })) as unknown as typeof matchMedia;
+    try {
+      watchSettings();
+      reloadSettings();
+      expect(attrs().theme).toBe("endfield");
+      dark = true;
+      onChange();
+      expect(attrs().theme).toBe("endfield-dark");
+      setSettings({ theme: "sepia" });
+      onChange();
+      expect(attrs().theme).toBe("sepia");
+      expect(runInitScript().theme).toBe("sepia");
+    } finally {
+      globalThis.matchMedia = real;
     }
   });
 
@@ -86,6 +120,7 @@ describe("reading settings", () => {
     JSON.stringify({ theme: "sepia", size: "xl", font: "sans", width: "wide" }),
     JSON.stringify({ theme: "light", size: "huge", width: "narrow" }),
     JSON.stringify({ theme: "endfield", size: "l" }),
+    JSON.stringify({ theme: "endfield-dark" }),
     JSON.stringify({ theme: "neon" }),
   ])("theme-init.js applies the same attributes as applySettings for %p", (stored) => {
     if (stored === null) localStorage.removeItem(SETTINGS_KEY);

@@ -42,7 +42,7 @@ export function DayHeader({ day, today, readouts }: { day: string; today: string
             </span>
             <span className="flex items-center gap-2 font-medium text-muted-foreground">
               {weekday.format(d)}
-              {isToday && <span className="bg-foreground px-1.5 py-[3px] font-bold tracking-[0.6px] text-mark">Today</span>}
+              {isToday && <span className="bg-today px-1.5 py-[3px] font-bold tracking-[0.6px] text-on-today">Today</span>}
             </span>
           </div>
           <div className="ml-auto flex gap-2 lg:ml-3">

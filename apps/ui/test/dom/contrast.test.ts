@@ -25,6 +25,7 @@ export function contrast(a: string, b: string): number {
 
 const THEMES = {
   endfield: '[data-theme="endfield"]',
+  "endfield-dark": '[data-theme="endfield-dark"]',
   light: '[data-theme="light"]',
   dark: '[data-theme="dark"]',
   sepia: '[data-theme="sepia"]',
@@ -39,6 +40,7 @@ const CHIPS = ["danger", "stack", "warn", "cve", "blind", "patched", "plain"];
 const TOKENS = [
   ...["chrome", "on-chrome", "on-chrome-muted", "chrome-field", "mark", "on-mark", "raised", "sunken", "rule", "outline"],
   ...["chile-mark", "cyber-mark", "ai-mark", "alert", "chip-update"],
+  ...["primary", "on-primary", "unread", "today", "on-today", "markets-line", "contour"],
   ...CHIPS.flatMap((c) => [`chip-${c}`, `chip-${c}-fg`]),
 ];
 
@@ -69,7 +71,7 @@ describe.each(Object.entries(THEMES))("%s theme", (_name, selector) => {
     expect(v[t]).toMatch(/^#[0-9a-f]{6}$/);
   });
 
-  test.each([...CHIPS.map((c) => [`chip-${c}-fg`, `chip-${c}`] as const), ["on-chrome", "chrome"], ["on-chrome-muted", "chrome"], ["on-mark", "mark"]] as const)(
+  test.each([...CHIPS.map((c) => [`chip-${c}-fg`, `chip-${c}`] as const), ["on-chrome", "chrome"], ["on-chrome-muted", "chrome"], ["on-mark", "mark"], ["on-primary", "primary"], ["on-today", "today"]] as const)(
     "%s on %s ≥ 4.5:1",
     (a, b) => {
       expect(contrast(v[a]!, v[b]!)).toBeGreaterThanOrEqual(4.5);
@@ -82,6 +84,10 @@ describe.each(Object.entries(THEMES))("%s theme", (_name, selector) => {
 
   test("the cyber mark's ink outline (fg) on card ≥ 3:1", () => {
     expect(contrast(v.fg!, v.card!)).toBeGreaterThanOrEqual(3);
+  });
+
+  test.each(["bg", "card"])("the unread diamond on %s ≥ 3:1", (s) => {
+    expect(contrast(v.unread!, v[s]!)).toBeGreaterThanOrEqual(3);
   });
 
   test("raised is the card colour", () => {
