@@ -1,7 +1,7 @@
 // The date header (numeral, month and year, weekday, TODAY chip, day steps), the title rule and the readouts.
 import { Link } from "react-router";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { TitleRule } from "@/components/today/TitleRule";
+import { TitleRule } from "@/components/TitleRule";
 import { addDays, isValidDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 

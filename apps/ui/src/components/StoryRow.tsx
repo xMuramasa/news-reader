@@ -33,7 +33,8 @@ function UnreadDiamond({ size = "size-1.5" }: { size?: string }) {
   );
 }
 
-async function share(s: StoryView): Promise<void> {
+/** Web Share when the browser has it, else copy the story link (and say so). Also used by the story page. */
+export async function shareStory(s: StoryView): Promise<void> {
   const url = new URL(storyHref(s.id), location.origin).href;
   if (typeof navigator.share === "function") {
     try {
@@ -172,7 +173,7 @@ export function StoryRow({ story: s, heading: H = "h3", showFeed = false, showDa
                 <ExternalLinkIcon className="size-3.5" aria-hidden />
               </ExternalLink>
             )}
-            <button type="button" aria-label="Share" title="Share" className={ICON_BTN} onClick={() => void share(s)}>
+            <button type="button" aria-label="Share" title="Share" className={ICON_BTN} onClick={() => void shareStory(s)}>
               <Share2Icon className="size-3.5" aria-hidden />
             </button>
             <button type="button" aria-label="Collapse" aria-expanded title="Collapse" className={cn(ICON_BTN, "ml-auto")} onClick={toggle}>

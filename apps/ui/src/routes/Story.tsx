@@ -10,7 +10,7 @@ import { ErrorState, NotFoundState, PageSkeleton } from "@/components/States";
 import { Accordion, SECTION_LABEL, SideCard } from "@/components/story/Accordion";
 import { CoverageSummary, Framing, SourceList, ThreadList, coverageCount, threadTimeline } from "@/components/story/Panels";
 import { StoryActions } from "@/components/story/StoryActions";
-import { TitleRule } from "@/components/story/TitleRule";
+import { TitleRule } from "@/components/TitleRule";
 import { ApiError, useApi } from "@/lib/api";
 import { formatDay, formatRunTime } from "@/lib/dates";
 import { FEEDS, VERIFICATION_NOTES, sectionTitle } from "@/lib/feeds";

@@ -1,4 +1,4 @@
-// The Endfield title rule: three equal bars (magenta, yellow, green), 4 px tall, 192 px wide.
+/** The Endfield title rule: three equal bars (magenta, yellow, green), 4 px tall, 192 px wide. Used by Today and the story page. */
 export function TitleRule() {
   return (
     <div aria-hidden className="flex h-1 w-48 max-w-full" data-testid="title-rule">
