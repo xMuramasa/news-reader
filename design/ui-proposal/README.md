@@ -23,3 +23,5 @@ trimmed. These are a review artifact, not assets.
   beside it
 - `05-today-phone-top-first-light.png`: option C in today's light theme (Newsreader and Inter), to show the layout
   doesn't depend on Endfield
+- `06a-today-phone-endfield-dark.png`, `06b-today-desktop-endfield-dark.png`: the agreed Today (01c, 02a) in Endfield dark (#11): page `#191919`, cards `#26282C`, bars `#0E0F11`, yellow primary action, unread mark and TODAY chip; the contour lines in `#4A4D55`
+- 01c and 02a now carry the Endfield contour lines on the paper (`#C8C8C0`, 18 curves around 78 %/72 % of the viewport, the macOS app's formula), as asked with #11
