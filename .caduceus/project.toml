@@ -1,0 +1,46 @@
+# Caduceus settings (caduceus SPEC section 6), from the hermes-dispatch profile with gates split by meaning by Hermes.
+kind = "web-app"
+language = "typescript"
+hosts = ["optiplex"]
+model = "sonnet"
+rules = [
+  "You may run single UI test files with `bun test --preload ./test/setup-dom.ts <file>` from `apps/ui`. Do not run `bun run test`, `bun run check` or `bun run smoke` (they start Docker for the API), and never start a dev server or `vite` (no long-running processes).",
+  "UI text is plain text (React escapes it): no `dangerouslySetInnerHTML`, no Markdown rendering. External links only through the existing safe-url helper, `target=\"_blank\" rel=\"noopener noreferrer\"`. The CSP allows no external origins: no CDN fonts, images or scripts.",
+  "Keep accessibility: real buttons and links, `aria-expanded`/`aria-current` where the issue says, visible focus, 44 px touch targets on the phone where possible, `prefers-reduced-motion` respected.",
+]
+network = "No network: no WebFetch, WebSearch, curl, wget or package downloads. Never add or update a dependency (`bun add`, `bun install`, `bun update` are off). Everything you need is installed."
+
+[gates]
+# A new worktree needs `bun install --frozen-lockfile` first (Hermes does it until settings get a setup step, caduceus#26).
+test = [
+  "bun run test:ui",
+]
+build = [
+  "bun run build:ui",
+]
+lint = [
+  "bun run typecheck",
+]
+
+[access]
+allow = [
+  "Bash(bun run typecheck*)",
+  "Bash(bun run test:ui*)",
+  "Bash(bun run build:ui*)",
+  "Bash(bun test --preload*)",
+  "Bash(bun test ./test*)",
+  "Bash(python3 -c*)",
+]
+deny = [
+  "Bash(bun add*)",
+  "Bash(bun install*)",
+  "Bash(bun update*)",
+  "Bash(bun remove*)",
+  "Bash(bun run dev*)",
+  "Bash(bun run smoke*)",
+  "Bash(bun run check*)",
+  "Bash(bunx*)",
+  "Bash(npx*)",
+  "Bash(npm*)",
+  "Bash(vite*)",
+]
